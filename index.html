@@ -2731,53 +2731,74 @@
                 return managers;
             }
 
-            getNovemberData(restaurant) {
-                const novemberData = restaurant.monthlyData['نوفمبر 2025'];
-                if (novemberData) {
-                    return novemberData;
-                }
-                
-                // إذا لم يكن هناك بيانات لشهر نوفمبر، استخدم آخر شهر متاح
-                const months = Object.keys(restaurant.monthlyData);
-                if (months.length > 0) {
-                    const lastMonth = months[months.length - 1];
-                    return restaurant.monthlyData[lastMonth];
-                }
-                
-                // إذا لم يكن هناك أي بيانات شهرية، استخدم المتوسطات السنوية
-                return {
-                    sales: restaurant.totals.monthlyAverages.sales || 0,
-                    totalMaterialCost: restaurant.totals.monthlyAverages.totalMaterialCost || 0,
-                    foodCost: restaurant.totals.monthlyAverages.foodCost || 0,
-                    meatCost: restaurant.totals.monthlyAverages.meatCost || 0,
-                    drinksCost: restaurant.totals.monthlyAverages.drinksCost || 0,
-                    packagingCost: restaurant.totals.monthlyAverages.packagingCost || 0,
-                    breadCost: restaurant.totals.monthlyAverages.breadCost || 0,
-                    spicesCost: restaurant.totals.monthlyAverages.spicesCost || 0,
-                    coalCost: restaurant.totals.monthlyAverages.coalCost || 0,
-                    vegetablesCost: restaurant.totals.monthlyAverages.vegetablesCost || 0,
-                    gasCost: restaurant.totals.monthlyAverages.gasCost || 0,
-                    inventoryDifference: restaurant.totals.monthlyAverages.inventoryDifference || 0,
-                    grossProfit: restaurant.totals.monthlyAverages.grossProfit || 0,
-                    salariesCost: restaurant.totals.monthlyAverages.salariesCost || 0,
-                    extraWorkCost: restaurant.totals.monthlyAverages.extraWorkCost || 0,
-                    wasteCost: restaurant.totals.monthlyAverages.wasteCost || 0,
-                    maintenanceCost: restaurant.totals.monthlyAverages.maintenanceCost || 0,
-                    cleaningCost: restaurant.totals.monthlyAverages.cleaningCost || 0,
-                    workersSuppliesCost: restaurant.totals.monthlyAverages.workersSuppliesCost || 0,
-                    restaurantSuppliesCost: restaurant.totals.monthlyAverages.restaurantSuppliesCost || 0,
-                    stationeryCost: restaurant.totals.monthlyAverages.stationeryCost || 0,
-                    workersMealsCost: restaurant.totals.monthlyAverages.workersMealsCost || 0,
-                    otherOperatingCost: restaurant.totals.monthlyAverages.otherOperatingCost || 0,
-                    totalOperatingCost: restaurant.totals.monthlyAverages.totalOperatingCost || 0,
-                    profitBeforeGeneral: restaurant.totals.monthlyAverages.profitBeforeGeneral || 0,
-                    generalExpenses: restaurant.totals.monthlyAverages.generalExpenses || 0,
-                    netProfit: restaurant.totals.monthlyAverages.netProfit || 0
-                };
+          getOctoberData(restaurant) {
+    // أولاً: حاول الحصول على بيانات أكتوبر 2025
+    const octoberData = restaurant.monthlyData['أكتوبر 2025'];
+    
+    if (octoberData) {
+        console.log('Using October 2025 data');
+        return octoberData;
+    }
+    
+    // إذا لم توجد بيانات أكتوبر، ابحث عن أي شهر آخر متاح
+    const months = Object.keys(restaurant.monthlyData);
+    if (months.length > 0) {
+        // حاول العثور على أقرب شهر قبل نوفمبر
+        const monthOrder = [
+            'يناير 2025', 'فبراير 2025', 'مارس 2025', 'أبريل 2025',
+            'مايو 2025', 'يونيو 2025', 'يوليو 2025', 'أغسطس 2025',
+            'سبتمبر 2025', 'أكتوبر 2025', 'نوفمبر 2025', 'ديسمبر 2025'
+        ];
+        
+        // ابحث عن شهر سبتمبر أو أغسطس إذا لم يوجد أكتوبر
+        for (let month of monthOrder) {
+            if (month !== 'نوفمبر 2025' && restaurant.monthlyData[month]) {
+                console.log(`Using ${month} data instead of October`);
+                return restaurant.monthlyData[month];
             }
+        }
+        
+        // إذا لم ينجح، استخدم آخر شهر متاح
+        const lastMonth = months[months.length - 1];
+        console.log(`Using last available month: ${lastMonth}`);
+        return restaurant.monthlyData[lastMonth];
+    }
+    
+    // إذا لم يكن هناك أي بيانات شهرية، استخدم المتوسطات السنوية
+    console.log('Using annual averages');
+    return {
+        sales: restaurant.totals.monthlyAverages.sales || 0,
+        totalMaterialCost: restaurant.totals.monthlyAverages.totalMaterialCost || 0,
+        foodCost: restaurant.totals.monthlyAverages.foodCost || 0,
+        meatCost: restaurant.totals.monthlyAverages.meatCost || 0,
+        drinksCost: restaurant.totals.monthlyAverages.drinksCost || 0,
+        packagingCost: restaurant.totals.monthlyAverages.packagingCost || 0,
+        breadCost: restaurant.totals.monthlyAverages.breadCost || 0,
+        spicesCost: restaurant.totals.monthlyAverages.spicesCost || 0,
+        coalCost: restaurant.totals.monthlyAverages.coalCost || 0,
+        vegetablesCost: restaurant.totals.monthlyAverages.vegetablesCost || 0,
+        gasCost: restaurant.totals.monthlyAverages.gasCost || 0,
+        inventoryDifference: restaurant.totals.monthlyAverages.inventoryDifference || 0,
+        grossProfit: restaurant.totals.monthlyAverages.grossProfit || 0,
+        salariesCost: restaurant.totals.monthlyAverages.salariesCost || 0,
+        extraWorkCost: restaurant.totals.monthlyAverages.extraWorkCost || 0,
+        wasteCost: restaurant.totals.monthlyAverages.wasteCost || 0,
+        maintenanceCost: restaurant.totals.monthlyAverages.maintenanceCost || 0,
+        cleaningCost: restaurant.totals.monthlyAverages.cleaningCost || 0,
+        workersSuppliesCost: restaurant.totals.monthlyAverages.workersSuppliesCost || 0,
+        restaurantSuppliesCost: restaurant.totals.monthlyAverages.restaurantSuppliesCost || 0,
+        stationeryCost: restaurant.totals.monthlyAverages.stationeryCost || 0,
+        workersMealsCost: restaurant.totals.monthlyAverages.workersMealsCost || 0,
+        otherOperatingCost: restaurant.totals.monthlyAverages.otherOperatingCost || 0,
+        totalOperatingCost: restaurant.totals.monthlyAverages.totalOperatingCost || 0,
+        profitBeforeGeneral: restaurant.totals.monthlyAverages.profitBeforeGeneral || 0,
+        generalExpenses: restaurant.totals.monthlyAverages.generalExpenses || 0,
+        netProfit: restaurant.totals.monthlyAverages.netProfit || 0
+    };
+}
 
-            calculateMonthValue(novemberValue, percentage, targetMonthDays, baseMonthDays = 30) {
-                // الحساب: (قيمة نوفمبر / 30 * عدد أيام الشهر الهدف) * (1 + النسبة/100)
+            calculateMonthValue(novemberValue, percentage, targetMonthDays, baseMonthDays = 31) {
+                // الحساب: (قيمة أكتوبر / 31 * عدد أيام الشهر الهدف) * (1 + النسبة/100)
                 if (!novemberValue || novemberValue === 0) return 0;
                 
                 const dailyValue = novemberValue / baseMonthDays;
@@ -2810,7 +2831,7 @@
                 
                 // إنشاء شيت لكل مطعم
                 this.restaurants.forEach((restaurant, index) => {
-                    const novemberData = this.getNovemberData(restaurant);
+                    const novemberData = this.getOctoberData(restaurant);
                     const sheetName = this.getValidSheetName(restaurant.name, index);
                     
                     // إنشاء البيانات للشيت
@@ -2820,7 +2841,6 @@
                     sheetData.push(['مدير التشغيل:', restaurant.operationsManager]);
                     sheetData.push(['مدير المنطقة:', restaurant.areaManager]);
                     sheetData.push(['اسم المطعم:', restaurant.name]);
-                    sheetData.push(['ملاحظة: جميع القيم محسوبة بناءً على بيانات نوفمبر 2025 مع تطبيق النسب المحددة وتعديل عدد الأيام']);
                     sheetData.push(['']);
                     
                     // رؤوس الجدول
@@ -2971,7 +2991,6 @@
                 const summaryData = [
                     ['ملخص خطة 2026 - شركة نايف للأغذية'],
                     ['تاريخ الإنشاء:', new Date().toLocaleDateString('ar-SA')],
-                    ['ملاحظة: جميع القيم محسوبة بناءً على بيانات نوفمبر 2025 مع تطبيق النسب المحددة وتعديل عدد الأيام'],
                     [''],
                     ['المطعم', 'مدير المنطقة', 'المبيعات 2025', 'المبيعات المستهدفة 2026', 'الزيادة %', 
                      'الربح 2025', 'الربح المستهدف 2026', 'هامش الربح 2025', 'هامش الربح المستهدف 2026']
@@ -2979,7 +2998,7 @@
                 
                 this.restaurants.forEach(restaurant => {
                     const data = this.getRestaurantData(restaurant.id);
-                    const novemberData = this.getNovemberData(restaurant);
+                    const novemberData = this.getOctoberData(restaurant);
                     
                     // حساب المبيعات المستهدفة (متوسط شهري * 12)
                     const targetMonthlySales = this.calculateMonthValue(
@@ -3021,8 +3040,7 @@
             createPlanningPercentagesSheet(wb) {
                 const percentagesData = [
                     ['نسب التخطيط المستخدمة - خطة 2026'],
-                    ['تاريخ الإنشاء:', new Date().toLocaleDateString('ar-SA')],
-                    ['ملاحظة: جميع النسب تطبق على بيانات نوفمبر 2025 مع تعديل عدد الأيام'],
+                    ['تاريخ الإنشاء:', new Date().toLocaleDateString('ar-KW')],
                     [''],
                     ['نوع الحساب', 'النسبة %', 'الوصف']
                 ];
@@ -4467,11 +4485,11 @@
                 
                 const percentages = this.dataManager.getPlanningPercentages();
                 const sampleRestaurant = this.dataManager.restaurants[0];
-                const novemberData = this.dataManager.getNovemberData(sampleRestaurant);
+                const novemberData = this.dataManager.getOctoberData(sampleRestaurant);
                 
                 const content = `
                     <div class="dashboard-header">
-                        <h1><i class="fas fa-chart-pie"></i> خطة تحسين الأداء 2026 (حساب نسبي حسب نوفمبر)</h1>
+                        <h1><i class="fas fa-chart-pie"></i> خطة تحسين الأداء 2026 (حساب نسبي حسب أكتوبر)</h1>
                         <div class="dashboard-actions">
                             <button class="btn btn-primary" onclick="dashboard.savePlanningPercentages()">
                                 <i class="fas fa-save"></i> حفظ النسب
@@ -4487,10 +4505,10 @@
                             <h3><i class="fas fa-sliders-h"></i> تعيين نسب الزيادة/النقصان</h3>
                             <p style="margin-bottom: 20px; color: #666; font-size: 0.95rem;">
                                 يتم حساب القيم المستهدفة لسنة 2026 بناءً على:
-                                <br>1. بيانات شهر نوفمبر 2025 كأساس
+                                <br>1. بيانات شهر أكتوبر 2025 كأساس
                                 <br>2. النسب المحددة لكل حساب
-                                <br>3. تعديل عدد أيام الشهر (30 يوم لشهر نوفمبر)
-                                <br>4. صيغة الحساب: (قيمة نوفمبر / 30 × عدد أيام الشهر الهدف) × (1 + النسبة/100)
+                                <br>3. تعديل عدد أيام الشهر (31 يوم لشهر أكتوبر)
+                                <br>4. صيغة الحساب: (قيمة أكتوبر / 31 × عدد أيام الشهر الهدف) × (1 + النسبة/100)
                             </p>
                             
                             <div class="percentage-group">
@@ -4545,12 +4563,12 @@
                         <div class="percentage-preview">
                             <h3><i class="fas fa-eye"></i> معاينة الحسابات</h3>
                             <p style="margin-bottom: 20px; color: #666; font-size: 0.95rem;">
-                                مثال تطبيقي بناءً على بيانات نوفمبر 2025 لأحد المطاعم:
+                                مثال تطبيقي بناءً على بيانات أكتوبر 2025 لأحد المطاعم:
                             </p>
                             
                             <div class="preview-summary">
                                 <div class="preview-item">
-                                    <span>المبيعات نوفمبر 2025:</span>
+                                    <span>المبيعات أكتوبر 2025:</span>
                                     <span class="value">${Helpers.formatNumber(novemberData.sales)} د.ك</span>
                                 </div>
                                 <div class="preview-item">
@@ -4571,7 +4589,7 @@
                                     <i class="fas fa-info-circle"></i> معلومات مهمة
                                 </h4>
                                 <ul style="color: #666; font-size: 0.9rem; padding-right: 20px;">
-                                    <li>يتم أخذ بيانات شهر نوفمبر 2025 كأساس للحسابات</li>
+                                    <li>يتم أخذ بيانات شهر أكتوبر 2025 كأساس للحسابات</li>
                                     <li>يتم تعديل القيم حسب عدد أيام كل شهر (يناير 31 يوم، فبراير 28 يوم، إلخ)</li>
                                     <li>يتم تطبيق النسبة المحددة لكل حساب على حدة</li>
                                     <li>يتم حساب القيم المحسوبة (المجملات) تلقائياً حسب معادلات Excel</li>
