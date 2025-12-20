@@ -352,7 +352,7 @@
         }
 
         .summary-item i {
-            font-size: 0.8rem;
+            font-size: 1rem;
             color: rgba(255,255,255,0.9);
             background: rgba(255,255,255,0.2);
             padding: 10px;
@@ -1815,6 +1815,142 @@
             color: var(--primary-color);
             border-right: 3px solid var(--primary-color);
         }
+
+        /* تنسيقات جديدة للطباعة */
+        .detailed-costs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .detailed-costs-table th {
+            background-color: #f8f9fa;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            font-weight: 600;
+            color: #2C3E50;
+        }
+
+        .detailed-costs-table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            direction: ltr;
+        }
+
+        .detailed-costs-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .detailed-costs-table tr:hover {
+            background-color: #e9f7fe;
+        }
+
+        .cost-header {
+            background-color: #4A90E2 !important;
+            color: white !important;
+        }
+
+        .subcost-header {
+            background-color: #6c757d !important;
+            color: white !important;
+        }
+
+        .material-cost {
+            background-color: rgba(74, 144, 226, 0.1) !important;
+        }
+
+        .operating-cost {
+            background-color: rgba(80, 200, 120, 0.1) !important;
+        }
+
+        .general-cost {
+            background-color: rgba(255, 193, 7, 0.1) !important;
+        }
+
+        .print-button {
+            background-color: #6c757d !important;
+            color: white !important;
+        }
+
+        .print-button:hover {
+            background-color: #5a6268 !important;
+        }
+
+        .year-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .year-selector label {
+            font-weight: 600;
+            color: var(--dark-color);
+            white-space: nowrap;
+        }
+
+        .year-selector select {
+            border: none;
+            background: transparent;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 600;
+            color: var(--primary-color);
+            cursor: pointer;
+            min-width: 80px;
+        }
+
+        .year-selector select:focus {
+            outline: none;
+        }
+
+        .planning-year-selector {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .planning-year-selector h4 {
+            margin-bottom: 10px;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .year-input-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .year-input-group > div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .year-input-group label {
+            font-weight: 600;
+            color: var(--dark-color);
+            min-width: 120px;
+        }
+
+        .year-input-group input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            width: 100px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -1831,9 +1967,20 @@
             </div>
             
             <div class="nav-controls">
+                <div class="year-selector">
+                    <label>السنة:</label>
+                    <select id="current-year-select">
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                        <option value="2027">2027</option>
+                        <option value="2028">2028</option>
+                        <option value="2029">2029</option>
+                    </select>
+                </div>
                 <div class="date-display">
                     <i class="fas fa-calendar-alt"></i>
-                    <span id="current-date">--/--/2025</span>
+                    <span id="current-date">-- ديسمبر 2025</span>
+                    <span id="current-day">--</span>
                 </div>
                 <button class="btn btn-secondary" id="download-template-btn">
                     <i class="fas fa-download"></i> تحميل نموذج
@@ -1887,7 +2034,7 @@
                 </li>
                 <li data-page="planning">
                     <i class="fas fa-chart-pie"></i>
-                    <span>خطة 2026</span>
+                    <span>خطة السنة القادمة</span>
                 </li>
                 <li data-page="export">
                     <i class="fas fa-download"></i>
@@ -1918,6 +2065,13 @@
         <div class="modal-content">
             <button class="close-btn">&times;</button>
             <div class="modal-body"></div>
+        </div>
+    </div>
+
+    <div id="detailed-costs-modal" class="modal">
+        <div class="modal-content" style="max-width: 1200px;">
+            <button class="close-btn">&times;</button>
+            <div class="modal-body" id="detailed-costs-body"></div>
         </div>
     </div>
 
@@ -1956,7 +2110,7 @@
                     'صافى الربح': 'netProfit'
                 };
                 
-                // تعريف بنود التكلفة الفرعية (تكون جزء من اجمالي تكلفة المواد)
+                // تعريف بنود التكلفة الفرعية
                 this.materialCostAccounts = [
                     'تكلفة - المواد الغذائية - المخازن',
                     'تكلفة - اللحوم والمقبلات',
@@ -1997,7 +2151,7 @@
                 ];
             }
 
-            async parseExcel(file) {
+            async parseExcel(file, dataYear = 2025) {
                 return new Promise((resolve, reject) => {
                     const reader = new FileReader();
                     
@@ -2011,7 +2165,7 @@
                             
                             const excelData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
                             
-                            const restaurants = this.parseRestaurantData(excelData);
+                            const restaurants = this.parseRestaurantData(excelData, dataYear);
                             
                             resolve(restaurants);
                         } catch (error) {
@@ -2024,16 +2178,18 @@
                 });
             }
 
-            parseRestaurantData(excelData) {
+            parseRestaurantData(excelData, dataYear) {
                 const restaurants = [];
                 const numRows = excelData.length;
                 const numCols = excelData[0]?.length || 0;
                 
                 console.log(`Excel dimensions: ${numRows} rows x ${numCols} columns`);
                 
+                // توليد أسماء الشهور للسنة المحددة
+                const months = this.generateMonthsForYear(dataYear);
+                
                 // كل مطعم يأخذ 12 شهر (12 عمود)
-                // البحث عن بداية ونهاية المطاعم
-                let currentCol = 1; // البدء من العمود B (العنوان في العمود A)
+                let currentCol = 1; // البدء من العمود B
                 
                 while (currentCol < numCols) {
                     try {
@@ -2041,7 +2197,7 @@
                         const restaurantName = excelData[2]?.[currentCol]?.toString()?.trim();
                         
                         if (!restaurantName || restaurantName === '' || restaurantName === 'غير محدد') {
-                            currentCol += 12; // الانتقال إلى المجموعة التالية (12 شهر)
+                            currentCol += 12; // الانتقال إلى المجموعة التالية
                             continue;
                         }
                         
@@ -2051,9 +2207,6 @@
                         
                         // تحليل البيانات الشهرية
                         const monthlyData = {};
-                        const months = ['يناير 2025', 'فبراير 2025', 'مارس 2025', 'أبريل 2025', 
-                                      'مايو 2025', 'يونيو 2025', 'يوليو 2025', 'أغسطس 2025', 
-                                      'سبتمبر 2025', 'أكتوبر 2025', 'نوفمبر 2025', 'ديسمبر 2025'];
                         
                         for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
                             const monthCol = currentCol + monthIndex;
@@ -2077,7 +2230,8 @@
                             operationsManager: operationsManager,
                             monthlyData: monthlyData,
                             annualData: annualData,
-                            totals: totals
+                            totals: totals,
+                            dataYear: dataYear
                         };
                         
                         restaurants.push(restaurant);
@@ -2086,13 +2240,22 @@
                         currentCol += 12; // الانتقال إلى المطعم التالي
                     } catch (error) {
                         console.error(`خطأ في تحليل مطعم عند العمود ${currentCol}:`, error);
-                        currentCol += 12; // الانتقال إلى المجموعة التالية
+                        currentCol += 12;
                         continue;
                     }
                 }
                 
                 console.log(`تم تحليل ${restaurants.length} مطعم بنجاح`);
                 return restaurants;
+            }
+
+            generateMonthsForYear(year) {
+                const arabicMonths = [
+                    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+                    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+                ];
+                
+                return arabicMonths.map(month => `${month} ${year}`);
             }
 
             parseMonthData(excelData, colIndex) {
@@ -2124,12 +2287,10 @@
                     profitBeforeGeneral: 0,
                     generalExpenses: 0,
                     netProfit: 0,
-                    // الحقول المحسوبة
                     totalCosts: 0,
                     profitMargin: 0
                 };
                 
-                // تحديد صفوف الحسابات
                 const accountRows = {
                     'المبيعات': 4,
                     'اجمالي تكلفة المواد المباعة': 5,
@@ -2174,8 +2335,7 @@
                     }
                 });
                 
-                // تطبيق معادلات Excel يدوياً بناءً على المثال
-                // 1. إجمالي تكلفة المواد = مجموع التكاليف الفرعية (من الصف 6 إلى 14)
+                // تطبيق معادلات Excel يدوياً
                 const materialCostsSum = 
                     (monthData.foodCost || 0) +
                     (monthData.meatCost || 0) +
@@ -2187,18 +2347,15 @@
                     (monthData.vegetablesCost || 0) +
                     (monthData.gasCost || 0);
                 
-                // إذا كان إجمالي تكلفة المواد فارغاً، استخدم المجموع
                 if ((!monthData.totalMaterialCost || monthData.totalMaterialCost === 0) && materialCostsSum > 0) {
                     monthData.totalMaterialCost = materialCostsSum;
                 }
                 
-                // 2. مجمل الربح = المبيعات - إجمالي تكلفة المواد
                 const calculatedGrossProfit = (monthData.sales || 0) - (monthData.totalMaterialCost || 0);
                 if ((!monthData.grossProfit || monthData.grossProfit === 0) && calculatedGrossProfit !== 0) {
                     monthData.grossProfit = calculatedGrossProfit;
                 }
                 
-                // 3. مجموع مصاريف التشغيل = مجموع مصاريف التشغيل الفرعية (من الصف 17 إلى 26)
                 const operatingCostsSum = 
                     (monthData.salariesCost || 0) +
                     (monthData.extraWorkCost || 0) +
@@ -2211,30 +2368,25 @@
                     (monthData.workersMealsCost || 0) +
                     (monthData.otherOperatingCost || 0);
                 
-                // إذا كان مجموع مصاريف التشغيل فارغاً، استخدم المجموع
                 if ((!monthData.totalOperatingCost || monthData.totalOperatingCost === 0) && operatingCostsSum > 0) {
                     monthData.totalOperatingCost = operatingCostsSum;
                 }
                 
-                // 4. الربح قبل المصاريف العمومية = مجمل الربح - مجموع مصاريف التشغيل
                 const calculatedProfitBeforeGeneral = (monthData.grossProfit || 0) - (monthData.totalOperatingCost || 0);
                 if ((!monthData.profitBeforeGeneral || monthData.profitBeforeGeneral === 0) && calculatedProfitBeforeGeneral !== 0) {
                     monthData.profitBeforeGeneral = calculatedProfitBeforeGeneral;
                 }
                 
-                // 5. صافي الربح = الربح قبل المصاريف العمومية - المصاريف العمومية
                 const calculatedNetProfit = (monthData.profitBeforeGeneral || 0) - (monthData.generalExpenses || 0);
                 if ((!monthData.netProfit || monthData.netProfit === 0) && calculatedNetProfit !== 0) {
                     monthData.netProfit = calculatedNetProfit;
                 }
                 
-                // حساب إجمالي التكاليف
                 monthData.totalCosts = 
                     (monthData.totalMaterialCost || 0) +
                     (monthData.totalOperatingCost || 0) +
                     (monthData.generalExpenses || 0);
                 
-                // حساب هامش الربح
                 monthData.profitMargin = monthData.sales > 0 ? 
                     (monthData.netProfit / monthData.sales) * 100 : 0;
                 
@@ -2274,7 +2426,6 @@
                     profitMargin: 0
                 };
                 
-                // جمع البيانات الشهرية
                 Object.values(monthlyData).forEach(month => {
                     Object.keys(annualData).forEach(key => {
                         if (key !== 'profitMargin') {
@@ -2283,7 +2434,6 @@
                     });
                 });
                 
-                // حساب هامش الربح السنوي
                 annualData.profitMargin = annualData.sales > 0 ? 
                     (annualData.netProfit / annualData.sales) * 100 : 0;
                 
@@ -2304,7 +2454,6 @@
                     monthlyAverages: {}
                 };
                 
-                // جمع البيانات الشهرية
                 const monthCount = Object.keys(monthlyData).length;
                 
                 Object.values(monthlyData).forEach(month => {
@@ -2318,7 +2467,6 @@
                     totals.annualTotalCosts += month.totalCosts || 0;
                 });
                 
-                // حساب المتوسطات الشهرية
                 if (monthCount > 0) {
                     totals.monthlyAverages = {
                         sales: totals.annualSales / monthCount,
@@ -2332,7 +2480,6 @@
                     };
                 }
                 
-                // حساب هامش الربح السنوي
                 totals.profitMargin = totals.annualSales > 0 ? 
                     (totals.annualNetProfit / totals.annualSales) * 100 : 0;
                 
@@ -2358,14 +2505,14 @@
                 };
                 this.planningData = {};
                 this.planningPercentages = this.getDefaultPercentages();
+                this.dataYear = 2025;
+                this.planningYear = 2026;
+                this.sourceMonth = 'أكتوبر 2025';
             }
 
             getDefaultPercentages() {
                 return {
-                    // نسبة المبيعات
                     salesPercentage: 5,
-                    
-                    // نسب التكاليف الفرعية (المادية)
                     foodCostPercentage: 3,
                     meatCostPercentage: 3,
                     drinksCostPercentage: 3,
@@ -2375,8 +2522,6 @@
                     coalCostPercentage: 3,
                     vegetablesCostPercentage: 3,
                     gasCostPercentage: 3,
-                    
-                    // نسب مصاريف التشغيل
                     salariesCostPercentage: 3,
                     extraWorkCostPercentage: 3,
                     wasteCostPercentage: 3,
@@ -2387,8 +2532,6 @@
                     stationeryCostPercentage: 3,
                     workersMealsCostPercentage: 3,
                     otherOperatingCostPercentage: 3,
-                    
-                    // نسب أخرى
                     inventoryDifferencePercentage: 0,
                     generalExpensesPercentage: 3
                 };
@@ -2396,7 +2539,7 @@
 
             async loadExcelFile(file) {
                 try {
-                    this.restaurants = await this.excelParser.parseExcel(file);
+                    this.restaurants = await this.excelParser.parseExcel(file, this.dataYear);
                     this.processLoadedData();
                     this.calculateCompanyTotals();
                     this.saveToLocalStorage();
@@ -2405,6 +2548,48 @@
                     console.error('Error loading Excel file:', error);
                     throw error;
                 }
+            }
+
+            setDataYear(year) {
+                this.dataYear = parseInt(year);
+                // تحديث بيانات الشهور في المطاعم إذا كانت موجودة
+                if (this.restaurants.length > 0) {
+                    this.restaurants.forEach(restaurant => {
+                        const newMonthlyData = {};
+                        const months = this.excelParser.generateMonthsForYear(this.dataYear);
+                        const oldMonths = Object.keys(restaurant.monthlyData);
+                        
+                        oldMonths.forEach((oldMonth, index) => {
+                            if (index < months.length) {
+                                newMonthlyData[months[index]] = restaurant.monthlyData[oldMonth];
+                            }
+                        });
+                        
+                        restaurant.monthlyData = newMonthlyData;
+                        restaurant.dataYear = this.dataYear;
+                    });
+                    
+                    this.processLoadedData();
+                    this.calculateCompanyTotals();
+                    this.saveToLocalStorage();
+                }
+            }
+
+            setPlanningYear(year) {
+                this.planningYear = parseInt(year);
+                this.saveToLocalStorage();
+            }
+
+            setSourceMonth(month) {
+                this.sourceMonth = month;
+                this.saveToLocalStorage();
+            }
+
+            getAvailableMonths() {
+                if (this.restaurants.length === 0) return [];
+                
+                const firstRestaurant = this.restaurants[0];
+                return Object.keys(firstRestaurant.monthlyData);
             }
 
             processLoadedData() {
@@ -2689,6 +2874,9 @@
                     monthlyData: this.monthlyData,
                     companyTotals: this.companyTotals,
                     planningPercentages: this.planningPercentages,
+                    dataYear: this.dataYear,
+                    planningYear: this.planningYear,
+                    sourceMonth: this.sourceMonth,
                     lastUpdated: new Date().toISOString()
                 };
                 
@@ -2705,6 +2893,9 @@
                         this.monthlyData = data.monthlyData || {};
                         this.companyTotals = data.companyTotals || this.companyTotals;
                         this.planningPercentages = data.planningPercentages || this.getDefaultPercentages();
+                        this.dataYear = data.dataYear || 2025;
+                        this.planningYear = data.planningYear || 2026;
+                        this.sourceMonth = data.sourceMonth || 'أكتوبر 2025';
                     } catch (error) {
                         console.error('Error loading from localStorage:', error);
                         this.restaurants = [];
@@ -2715,139 +2906,141 @@
 
             getUniqueManagers() {
                 const managers = {
-                    areaManagers: [],
-                    operationsManagers: []
+                    operationsManagers: [],
+                    areaManagersByOpsManager: {},
+                    restaurantsByAreaManager: {}
                 };
                 
                 this.restaurants.forEach(restaurant => {
-                    if (!managers.areaManagers.includes(restaurant.areaManager)) {
-                        managers.areaManagers.push(restaurant.areaManager);
-                    }
                     if (!managers.operationsManagers.includes(restaurant.operationsManager)) {
                         managers.operationsManagers.push(restaurant.operationsManager);
                     }
+                    
+                    if (!managers.areaManagersByOpsManager[restaurant.operationsManager]) {
+                        managers.areaManagersByOpsManager[restaurant.operationsManager] = [];
+                    }
+                    
+                    if (!managers.areaManagersByOpsManager[restaurant.operationsManager].includes(restaurant.areaManager)) {
+                        managers.areaManagersByOpsManager[restaurant.operationsManager].push(restaurant.areaManager);
+                    }
+                    
+                    if (!managers.restaurantsByAreaManager[restaurant.areaManager]) {
+                        managers.restaurantsByAreaManager[restaurant.areaManager] = [];
+                    }
+                    
+                    managers.restaurantsByAreaManager[restaurant.areaManager].push(restaurant.name);
                 });
                 
                 return managers;
             }
 
-          getOctoberData(restaurant) {
-    // أولاً: حاول الحصول على بيانات أكتوبر 2025
-    const octoberData = restaurant.monthlyData['أكتوبر 2025'];
-    
-    if (octoberData) {
-        console.log('Using October 2025 data');
-        return octoberData;
-    }
-    
-    // إذا لم توجد بيانات أكتوبر، ابحث عن أي شهر آخر متاح
-    const months = Object.keys(restaurant.monthlyData);
-    if (months.length > 0) {
-        // حاول العثور على أقرب شهر قبل نوفمبر
-        const monthOrder = [
-            'يناير 2025', 'فبراير 2025', 'مارس 2025', 'أبريل 2025',
-            'مايو 2025', 'يونيو 2025', 'يوليو 2025', 'أغسطس 2025',
-            'سبتمبر 2025', 'أكتوبر 2025', 'نوفمبر 2025', 'ديسمبر 2025'
-        ];
-        
-        // ابحث عن شهر سبتمبر أو أغسطس إذا لم يوجد أكتوبر
-        for (let month of monthOrder) {
-            if (month !== 'نوفمبر 2025' && restaurant.monthlyData[month]) {
-                console.log(`Using ${month} data instead of October`);
-                return restaurant.monthlyData[month];
-            }
-        }
-        
-        // إذا لم ينجح، استخدم آخر شهر متاح
-        const lastMonth = months[months.length - 1];
-        console.log(`Using last available month: ${lastMonth}`);
-        return restaurant.monthlyData[lastMonth];
-    }
-    
-    // إذا لم يكن هناك أي بيانات شهرية، استخدم المتوسطات السنوية
-    console.log('Using annual averages');
-    return {
-        sales: restaurant.totals.monthlyAverages.sales || 0,
-        totalMaterialCost: restaurant.totals.monthlyAverages.totalMaterialCost || 0,
-        foodCost: restaurant.totals.monthlyAverages.foodCost || 0,
-        meatCost: restaurant.totals.monthlyAverages.meatCost || 0,
-        drinksCost: restaurant.totals.monthlyAverages.drinksCost || 0,
-        packagingCost: restaurant.totals.monthlyAverages.packagingCost || 0,
-        breadCost: restaurant.totals.monthlyAverages.breadCost || 0,
-        spicesCost: restaurant.totals.monthlyAverages.spicesCost || 0,
-        coalCost: restaurant.totals.monthlyAverages.coalCost || 0,
-        vegetablesCost: restaurant.totals.monthlyAverages.vegetablesCost || 0,
-        gasCost: restaurant.totals.monthlyAverages.gasCost || 0,
-        inventoryDifference: restaurant.totals.monthlyAverages.inventoryDifference || 0,
-        grossProfit: restaurant.totals.monthlyAverages.grossProfit || 0,
-        salariesCost: restaurant.totals.monthlyAverages.salariesCost || 0,
-        extraWorkCost: restaurant.totals.monthlyAverages.extraWorkCost || 0,
-        wasteCost: restaurant.totals.monthlyAverages.wasteCost || 0,
-        maintenanceCost: restaurant.totals.monthlyAverages.maintenanceCost || 0,
-        cleaningCost: restaurant.totals.monthlyAverages.cleaningCost || 0,
-        workersSuppliesCost: restaurant.totals.monthlyAverages.workersSuppliesCost || 0,
-        restaurantSuppliesCost: restaurant.totals.monthlyAverages.restaurantSuppliesCost || 0,
-        stationeryCost: restaurant.totals.monthlyAverages.stationeryCost || 0,
-        workersMealsCost: restaurant.totals.monthlyAverages.workersMealsCost || 0,
-        otherOperatingCost: restaurant.totals.monthlyAverages.otherOperatingCost || 0,
-        totalOperatingCost: restaurant.totals.monthlyAverages.totalOperatingCost || 0,
-        profitBeforeGeneral: restaurant.totals.monthlyAverages.profitBeforeGeneral || 0,
-        generalExpenses: restaurant.totals.monthlyAverages.generalExpenses || 0,
-        netProfit: restaurant.totals.monthlyAverages.netProfit || 0
-    };
-}
-
-            calculateMonthValue(novemberValue, percentage, targetMonthDays, baseMonthDays = 31) {
-                // الحساب: (قيمة أكتوبر / 31 * عدد أيام الشهر الهدف) * (1 + النسبة/100)
-                if (!novemberValue || novemberValue === 0) return 0;
+            getSourceMonthData(restaurant) {
+                // محاولة الحصول على بيانات شهر المصدر المحدد
+                const sourceData = restaurant.monthlyData[this.sourceMonth];
                 
-                const dailyValue = novemberValue / baseMonthDays;
+                if (sourceData) {
+                    console.log(`Using ${this.sourceMonth} data`);
+                    return sourceData;
+                }
+                
+                // إذا لم توجد بيانات شهر المصدر، استخدم أول شهر متاح
+                const months = Object.keys(restaurant.monthlyData);
+                if (months.length > 0) {
+                    console.log(`Using first available month: ${months[0]}`);
+                    return restaurant.monthlyData[months[0]];
+                }
+                
+                // إذا لم يكن هناك أي بيانات شهرية، استخدم المتوسطات السنوية
+                console.log('Using annual averages');
+                return {
+                    sales: restaurant.totals.monthlyAverages.sales || 0,
+                    totalMaterialCost: restaurant.totals.monthlyAverages.totalMaterialCost || 0,
+                    foodCost: restaurant.totals.monthlyAverages.foodCost || 0,
+                    meatCost: restaurant.totals.monthlyAverages.meatCost || 0,
+                    drinksCost: restaurant.totals.monthlyAverages.drinksCost || 0,
+                    packagingCost: restaurant.totals.monthlyAverages.packagingCost || 0,
+                    breadCost: restaurant.totals.monthlyAverages.breadCost || 0,
+                    spicesCost: restaurant.totals.monthlyAverages.spicesCost || 0,
+                    coalCost: restaurant.totals.monthlyAverages.coalCost || 0,
+                    vegetablesCost: restaurant.totals.monthlyAverages.vegetablesCost || 0,
+                    gasCost: restaurant.totals.monthlyAverages.gasCost || 0,
+                    inventoryDifference: restaurant.totals.monthlyAverages.inventoryDifference || 0,
+                    grossProfit: restaurant.totals.monthlyAverages.grossProfit || 0,
+                    salariesCost: restaurant.totals.monthlyAverages.salariesCost || 0,
+                    extraWorkCost: restaurant.totals.monthlyAverages.extraWorkCost || 0,
+                    wasteCost: restaurant.totals.monthlyAverages.wasteCost || 0,
+                    maintenanceCost: restaurant.totals.monthlyAverages.maintenanceCost || 0,
+                    cleaningCost: restaurant.totals.monthlyAverages.cleaningCost || 0,
+                    workersSuppliesCost: restaurant.totals.monthlyAverages.workersSuppliesCost || 0,
+                    restaurantSuppliesCost: restaurant.totals.monthlyAverages.restaurantSuppliesCost || 0,
+                    stationeryCost: restaurant.totals.monthlyAverages.stationeryCost || 0,
+                    workersMealsCost: restaurant.totals.monthlyAverages.workersMealsCost || 0,
+                    otherOperatingCost: restaurant.totals.monthlyAverages.otherOperatingCost || 0,
+                    totalOperatingCost: restaurant.totals.monthlyAverages.totalOperatingCost || 0,
+                    profitBeforeGeneral: restaurant.totals.monthlyAverages.profitBeforeGeneral || 0,
+                    generalExpenses: restaurant.totals.monthlyAverages.generalExpenses || 0,
+                    netProfit: restaurant.totals.monthlyAverages.netProfit || 0
+                };
+            }
+
+            calculateMonthValue(sourceValue, percentage, targetMonthDays, sourceMonthDays = 30) {
+                if (!sourceValue || sourceValue === 0) return 0;
+                
+                const dailyValue = sourceValue / sourceMonthDays;
                 const daysAdjustedValue = dailyValue * targetMonthDays;
                 const percentageAdjustedValue = daysAdjustedValue * (1 + (percentage / 100));
                 
                 return Math.round(percentageAdjustedValue * 100) / 100;
             }
 
-            generatePlanningTemplate2026() {
+            getSourceMonthDays() {
+                const monthDays = {
+                    'يناير': 31, 'فبراير': 28, 'مارس': 31, 'أبريل': 30,
+                    'مايو': 31, 'يونيو': 30, 'يوليو': 31, 'أغسطس': 31,
+                    'سبتمبر': 30, 'أكتوبر': 31, 'نوفمبر': 30, 'ديسمبر': 31
+                };
+                
+                const monthName = this.sourceMonth.split(' ')[0];
+                return monthDays[monthName] || 30;
+            }
+
+            generatePlanningTemplate() {
                 if (this.restaurants.length === 0) {
                     throw new Error('لا توجد بيانات مطاعم. يرجى تحميل ملف Excel أولاً.');
                 }
                 
                 const wb = XLSX.utils.book_new();
-                const months2026 = [
-                    { name: 'يناير 2026', days: 31 },
-                    { name: 'فبراير 2026', days: 28 }, // 2026 ليست سنة كبيسة
-                    { name: 'يناير 2026', days: 31 },
-                    { name: 'أبريل 2026', days: 30 },
-                    { name: 'مايو 2026', days: 31 },
-                    { name: 'يونيو 2026', days: 30 },
-                    { name: 'يوليو 2026', days: 31 },
-                    { name: 'أغسطس 2026', days: 31 },
-                    { name: 'سبتمبر 2026', days: 30 },
-                    { name: 'أكتوبر 2026', days: 31 },
-                    { name: 'نوفمبر 2026', days: 30 },
-                    { name: 'ديسمبر 2026', days: 31 }
+                const arabicMonths = [
+                    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+                    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
                 ];
+                
+                const months = arabicMonths.map((month, index) => {
+                    const days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][index];
+                    // التحقق من سنة كبيسة
+                    if (index === 1 && ((this.planningYear % 4 === 0 && this.planningYear % 100 !== 0) || this.planningYear % 400 === 0)) {
+                        return { name: `${month} ${this.planningYear}`, days: 29 };
+                    }
+                    return { name: `${month} ${this.planningYear}`, days: days };
+                });
                 
                 // إنشاء شيت لكل مطعم
                 this.restaurants.forEach((restaurant, index) => {
-                    const novemberData = this.getOctoberData(restaurant);
+                    const sourceData = this.getSourceMonthData(restaurant);
+                    const sourceMonthDays = this.getSourceMonthDays();
                     const sheetName = this.getValidSheetName(restaurant.name, index);
                     
-                    // إنشاء البيانات للشيت
                     const sheetData = [];
                     
-                    // صفوف المعلومات
                     sheetData.push(['مدير التشغيل:', restaurant.operationsManager]);
                     sheetData.push(['مدير المنطقة:', restaurant.areaManager]);
                     sheetData.push(['اسم المطعم:', restaurant.name]);
+                    sheetData.push(['شهر الأساس:', this.sourceMonth]);
                     sheetData.push(['']);
                     
-                    // رؤوس الجدول
-                    const headers = ['الحسابات', ...months2026.map(m => m.name), 'الإجمالي السنوي'];
+                    const headers = ['الحسابات', ...months.map(m => m.name), 'الإجمالي السنوي'];
                     sheetData.push(headers);
                     
-                    // تعريف الحسابات ونسبها
                     const accounts = [
                         { name: 'المبيعات', key: 'sales', percentage: this.planningPercentages.salesPercentage },
                         { name: 'اجمالي تكلفة المواد المباعة', key: 'totalMaterialCost', percentage: 0, isCalculated: true },
@@ -2878,18 +3071,15 @@
                         { name: 'صافى الربح', key: 'netProfit', percentage: 0, isCalculated: true }
                     ];
                     
-                    // حساب البيانات الشهرية
                     const monthlyValues = {};
                     accounts.forEach(account => {
                         if (!account.isCalculated) {
-                            monthlyValues[account.key] = months2026.map(month => 
-                                this.calculateMonthValue(novemberData[account.key], account.percentage, month.days)
+                            monthlyValues[account.key] = months.map(month => 
+                                this.calculateMonthValue(sourceData[account.key], account.percentage, month.days, sourceMonthDays)
                             );
                         }
                     });
                     
-                    // حساب القيم المحسوبة
-                    // إجمالي تكلفة المواد = مجموع التكاليف الفرعية
                     monthlyValues.totalMaterialCost = [];
                     for (let i = 0; i < 12; i++) {
                         let total = 0;
@@ -2905,12 +3095,10 @@
                         monthlyValues.totalMaterialCost.push(total);
                     }
                     
-                    // مجمل الربح = المبيعات - إجمالي تكلفة المواد
-                    monthlyValues.grossProfit = months2026.map((_, i) => 
+                    monthlyValues.grossProfit = months.map((_, i) => 
                         monthlyValues.sales[i] - monthlyValues.totalMaterialCost[i]
                     );
                     
-                    // مجموع مصاريف التشغيل = مجموع مصاريف التشغيل الفرعية
                     monthlyValues.totalOperatingCost = [];
                     for (let i = 0; i < 12; i++) {
                         let total = 0;
@@ -2927,17 +3115,14 @@
                         monthlyValues.totalOperatingCost.push(total);
                     }
                     
-                    // الربح قبل العمومية = مجمل الربح - مجموع مصاريف التشغيل
-                    monthlyValues.profitBeforeGeneral = months2026.map((_, i) => 
+                    monthlyValues.profitBeforeGeneral = months.map((_, i) => 
                         monthlyValues.grossProfit[i] - monthlyValues.totalOperatingCost[i]
                     );
                     
-                    // صافي الربح = الربح قبل العمومية - المصاريف العمومية
-                    monthlyValues.netProfit = months2026.map((_, i) => 
+                    monthlyValues.netProfit = months.map((_, i) => 
                         monthlyValues.profitBeforeGeneral[i] - monthlyValues.generalExpenses[i]
                     );
                     
-                    // إضافة البيانات إلى الشيت
                     accounts.forEach(account => {
                         const rowData = [account.name];
                         let annualTotal = 0;
@@ -2952,25 +3137,19 @@
                         sheetData.push(rowData);
                     });
                     
-                    // إنشاء الورقة
                     const ws = XLSX.utils.aoa_to_sheet(sheetData);
                     
-                    // تعيين أعمدة العرض
                     const wscols = [
-                        { wch: 40 }, // أسماء الحسابات
-                        ...months2026.map(() => ({ wch: 15 })), // الأشهر
-                        { wch: 15 } // الإجمالي السنوي
+                        { wch: 40 },
+                        ...months.map(() => ({ wch: 15 })),
+                        { wch: 15 }
                     ];
                     ws['!cols'] = wscols;
                     
-                    // إضافة الورقة إلى الملف
                     XLSX.utils.book_append_sheet(wb, ws, sheetName);
                 });
                 
-                // إنشاء شيت الملخص
-                this.createSummarySheet2026(wb);
-                
-                // إنشاء شيت نسب التخطيط
+                this.createSummarySheet(wb);
                 this.createPlanningPercentagesSheet(wb);
                 
                 return wb;
@@ -2987,36 +3166,37 @@
                 return sheetName;
             }
             
-            createSummarySheet2026(wb) {
+            createSummarySheet(wb) {
                 const summaryData = [
-                    ['ملخص خطة 2026 - شركة نايف للأغذية'],
+                    [`ملخص خطة ${this.planningYear} - شركة نايف للأغذية`],
                     ['تاريخ الإنشاء:', new Date().toLocaleDateString('ar-SA')],
+                    ['شهر الأساس:', this.sourceMonth],
                     [''],
-                    ['المطعم', 'مدير المنطقة', 'المبيعات 2025', 'المبيعات المستهدفة 2026', 'الزيادة %', 
-                     'الربح 2025', 'الربح المستهدف 2026', 'هامش الربح 2025', 'هامش الربح المستهدف 2026']
+                    ['المطعم', 'مدير المنطقة', `المبيعات ${this.dataYear}`, `المبيعات المستهدفة ${this.planningYear}`, 'الزيادة %', 
+                     `الربح ${this.dataYear}`, `الربح المستهدف ${this.planningYear}`, `هامش الربح ${this.dataYear}`, `هامش الربح المستهدف ${this.planningYear}`]
                 ];
                 
                 this.restaurants.forEach(restaurant => {
                     const data = this.getRestaurantData(restaurant.id);
-                    const novemberData = this.getOctoberData(restaurant);
+                    const sourceData = this.getSourceMonthData(restaurant);
+                    const sourceMonthDays = this.getSourceMonthDays();
                     
-                    // حساب المبيعات المستهدفة (متوسط شهري * 12)
                     const targetMonthlySales = this.calculateMonthValue(
-                        novemberData.sales, 
+                        sourceData.sales, 
                         this.planningPercentages.salesPercentage, 
-                        30
+                        30,
+                        sourceMonthDays
                     );
                     const targetAnnualSales = targetMonthlySales * 12;
                     
-                    // حساب الربح المستهدف (متوسط شهري * 12)
                     const targetMonthlyProfit = this.calculateMonthValue(
-                        novemberData.netProfit, 
-                        0, // النسبة للربح حسب المعادلات
-                        30
+                        sourceData.netProfit, 
+                        0,
+                        30,
+                        sourceMonthDays
                     );
                     const targetAnnualProfit = targetMonthlyProfit * 12;
                     
-                    // حساب هامش الربح المستهدف
                     const targetProfitMargin = targetAnnualSales > 0 ? 
                         (targetAnnualProfit / targetAnnualSales) * 100 : 0;
                     
@@ -3039,8 +3219,9 @@
             
             createPlanningPercentagesSheet(wb) {
                 const percentagesData = [
-                    ['نسب التخطيط المستخدمة - خطة 2026'],
+                    [`نسب التخطيط المستخدمة - خطة ${this.planningYear}`],
                     ['تاريخ الإنشاء:', new Date().toLocaleDateString('ar-KW')],
+                    ['شهر الأساس:', this.sourceMonth],
                     [''],
                     ['نوع الحساب', 'النسبة %', 'الوصف']
                 ];
@@ -3163,6 +3344,28 @@
                 XLSX.utils.book_append_sheet(wb, ws, 'البيانات');
                 XLSX.writeFile(wb, filename);
             }
+
+            static getFormattedDate() {
+                const now = new Date();
+                const arabicMonths = [
+                    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+                    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+                ];
+                
+                const arabicDays = [
+                    'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'
+                ];
+                
+                const day = now.getDate();
+                const month = arabicMonths[now.getMonth()];
+                const year = now.getFullYear();
+                const dayName = arabicDays[now.getDay()];
+                
+                return {
+                    date: `${day} ${month} ${year}`,
+                    day: dayName
+                };
+            }
         }
 
         // Dashboard
@@ -3179,6 +3382,7 @@
                 this.showDashboard();
                 this.updateStats();
                 this.updateCurrentDate();
+                this.updateYearSelector();
             }
             
             setupEventListeners() {
@@ -3188,6 +3392,18 @@
                         this.navigateTo(page);
                     });
                 });
+                
+                // إضافة حدث لتغيير السنة
+                const yearSelect = document.getElementById('current-year-select');
+                if (yearSelect) {
+                    yearSelect.value = this.dataManager.dataYear;
+                    yearSelect.addEventListener('change', (e) => {
+                        this.dataManager.setDataYear(e.target.value);
+                        this.updateYearSelector();
+                        this.refresh();
+                        this.showNotification(`تم تغيير السنة إلى ${e.target.value}`, 'success');
+                    });
+                }
                 
                 setInterval(() => this.updateCurrentDate(), 60000);
             }
@@ -3233,6 +3449,13 @@
                 }
             }
             
+            updateYearSelector() {
+                const yearSelect = document.getElementById('current-year-select');
+                if (yearSelect) {
+                    yearSelect.value = this.dataManager.dataYear;
+                }
+            }
+            
             showDashboard() {
                 const totals = this.dataManager.companyTotals;
                 const topRestaurants = this.dataManager.getTopRestaurants(5);
@@ -3240,7 +3463,7 @@
                 
                 const content = `
                     <div class="dashboard-header">
-                        <h1><i class="fas fa-chart-line"></i> لوحة التحكم الرئيسية</h1>
+                        <h1><i class="fas fa-chart-line"></i> لوحة التحكم الرئيسية - ${this.dataManager.dataYear}</h1>
                         <div class="dashboard-actions">
                             <button class="btn btn-primary" id="refresh-btn">
                                 <i class="fas fa-sync-alt"></i> تحديث
@@ -3249,7 +3472,7 @@
                     </div>
                     
                     <div class="company-summary">
-                        <h2><i class="fas fa-building"></i> ملخص أداء الشركة - 2025</h2>
+                        <h2><i class="fas fa-building"></i> ملخص أداء الشركة - ${this.dataManager.dataYear}</h2>
                         <div class="summary-grid">
                             <div class="summary-item">
                                 <i class="fas fa-money-bill-wave"></i>
@@ -3416,8 +3639,7 @@
             }
             
             generateMonthOptions() {
-                const months = ["يناير 2025", "فبراير 2025", "مارس 2025", "أبريل 2025", "مايو 2025", "يونيو 2025",
-                               "يوليو 2025", "أغسطس 2025", "سبتمبر 2025", "أكتوبر 2025", "نوفمبر 2025", "ديسمبر 2025"];
+                const months = this.dataManager.getAvailableMonths();
                 return months.map(month => `<option value="${month}">${month}</option>`).join('');
             }
             
@@ -3437,8 +3659,7 @@
                 const ctx = document.getElementById('monthlyPerformanceChart')?.getContext('2d');
                 if (!ctx) return;
                 
-                const months = ["يناير 2025", "فبراير 2025", "مارس 2025", "أبريل 2025", "مايو 2025", "يونيو 2025",
-                               "يوليو 2025", "أغسطس 2025", "سبتمبر 2025", "أكتوبر 2025", "نوفمبر 2025", "ديسمبر 2025"];
+                const months = this.dataManager.getAvailableMonths();
                 const monthlyData = this.dataManager.getAllMonthlyData();
                 
                 let salesData, profitData;
@@ -3579,33 +3800,34 @@
             }
             
             updateCurrentDate() {
-                const now = new Date();
+                const formattedDate = Helpers.getFormattedDate();
                 const dateElement = document.getElementById('current-date');
+                const dayElement = document.getElementById('current-day');
+                
                 if (dateElement) {
-                    const options = { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric'
-                    };
-                    dateElement.textContent = now.toLocaleDateString('ar-SA', options).replace(/٢٠٢٥/g, '2025');
+                    dateElement.textContent = formattedDate.date;
+                }
+                if (dayElement) {
+                    dayElement.textContent = formattedDate.day;
                 }
             }
             
             refresh() {
                 this.updateStats();
+                this.updateCurrentDate();
                 this.navigateTo(this.currentPage);
             }
             
-            // التقرير الشهري التفصيلي
+            // التقرير الشهري التفصيلي مع الفلاتر الديناميكية
             showMonthlyReport() {
                 const months = this.dataManager.getAllMonthlyData();
                 const monthKeys = Object.keys(months);
                 const restaurants = this.dataManager.restaurants;
+                const managers = this.dataManager.getUniqueManagers();
                 
                 const content = `
                     <div class="dashboard-header">
-                        <h1><i class="fas fa-calendar-alt"></i> التقرير الشهري التفصيلي</h1>
+                        <h1><i class="fas fa-calendar-alt"></i> التقرير الشهري التفصيلي - ${this.dataManager.dataYear}</h1>
                         <div class="dashboard-actions">
                             <button class="btn btn-primary" onclick="dashboard.exportMonthlyReportExcel()">
                                 <i class="fas fa-download"></i> تصدير التقرير (Excel)
@@ -3615,24 +3837,29 @@
                     
                     <div class="filters">
                         <div class="filter-group">
-                            <label>اختر الشهر:</label>
-                            <select id="report-month-select" onchange="dashboard.filterMonthlyReport()">
-                                <option value="all">جميع الشهور</option>
-                                ${monthKeys.map(month => `<option value="${month}">${month}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label>اختر المطعم:</label>
-                            <select id="report-restaurant-select" onchange="dashboard.filterMonthlyReport()">
-                                <option value="all">جميع المطاعم</option>
-                                ${restaurants.map(r => `<option value="${r.id}">${r.name}</option>`).join('')}
+                            <label>مدير التشغيل:</label>
+                            <select id="ops-manager-filter" onchange="dashboard.filterMonthlyReport()">
+                                <option value="all">جميع المديرين</option>
+                                ${managers.operationsManagers.map(manager => `<option value="${manager}">${manager}</option>`).join('')}
                             </select>
                         </div>
                         <div class="filter-group">
                             <label>مدير المنطقة:</label>
-                            <select id="report-area-manager-select" onchange="dashboard.filterMonthlyReport()">
+                            <select id="area-manager-filter" onchange="dashboard.filterMonthlyReport()">
                                 <option value="all">جميع المديرين</option>
-                                ${[...new Set(restaurants.map(r => r.areaManager))].map(manager => `<option value="${manager}">${manager}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>اختر المطعم:</label>
+                            <select id="restaurant-filter" onchange="dashboard.filterMonthlyReport()">
+                                <option value="all">جميع المطاعم</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>اختر الشهر:</label>
+                            <select id="month-filter" onchange="dashboard.filterMonthlyReport()">
+                                <option value="all">جميع الشهور</option>
+                                ${monthKeys.map(month => `<option value="${month}">${month}</option>`).join('')}
                             </select>
                         </div>
                     </div>
@@ -3671,6 +3898,89 @@
                 `;
                 
                 document.getElementById('content-area').innerHTML = content;
+                
+                // تهيئة الفلاتر الديناميكية
+                setTimeout(() => this.initializeDynamicFilters(), 100);
+            }
+            
+            initializeDynamicFilters() {
+                const opsManagerFilter = document.getElementById('ops-manager-filter');
+                const areaManagerFilter = document.getElementById('area-manager-filter');
+                const restaurantFilter = document.getElementById('restaurant-filter');
+                
+                if (opsManagerFilter) {
+                    opsManagerFilter.addEventListener('change', () => {
+                        this.updateAreaManagerFilter();
+                    });
+                }
+                
+                if (areaManagerFilter) {
+                    areaManagerFilter.addEventListener('change', () => {
+                        this.updateRestaurantFilter();
+                    });
+                }
+                
+                // التهيئة الأولية
+                this.updateAreaManagerFilter();
+            }
+            
+            updateAreaManagerFilter() {
+                const opsManagerFilter = document.getElementById('ops-manager-filter');
+                const areaManagerFilter = document.getElementById('area-manager-filter');
+                
+                if (!opsManagerFilter || !areaManagerFilter) return;
+                
+                const selectedOpsManager = opsManagerFilter.value;
+                const managers = this.dataManager.getUniqueManagers();
+                
+                // تفريغ قائمة مديري المناطق
+                areaManagerFilter.innerHTML = '<option value="all">جميع المديرين</option>';
+                
+                if (selectedOpsManager !== 'all') {
+                    const areaManagers = managers.areaManagersByOpsManager[selectedOpsManager] || [];
+                    areaManagers.forEach(manager => {
+                        areaManagerFilter.innerHTML += `<option value="${manager}">${manager}</option>`;
+                    });
+                } else {
+                    // عرض جميع مديري المناطق
+                    const allAreaManagers = new Set();
+                    this.dataManager.restaurants.forEach(restaurant => {
+                        allAreaManagers.add(restaurant.areaManager);
+                    });
+                    
+                    allAreaManagers.forEach(manager => {
+                        areaManagerFilter.innerHTML += `<option value="${manager}">${manager}</option>`;
+                    });
+                }
+                
+                // تحديث قائمة المطاعم
+                this.updateRestaurantFilter();
+            }
+            
+            updateRestaurantFilter() {
+                const opsManagerFilter = document.getElementById('ops-manager-filter');
+                const areaManagerFilter = document.getElementById('area-manager-filter');
+                const restaurantFilter = document.getElementById('restaurant-filter');
+                
+                if (!restaurantFilter) return;
+                
+                const selectedOpsManager = opsManagerFilter.value;
+                const selectedAreaManager = areaManagerFilter.value;
+                
+                // تفريغ قائمة المطاعم
+                restaurantFilter.innerHTML = '<option value="all">جميع المطاعم</option>';
+                
+                this.dataManager.restaurants.forEach(restaurant => {
+                    const matchesOpsManager = selectedOpsManager === 'all' || restaurant.operationsManager === selectedOpsManager;
+                    const matchesAreaManager = selectedAreaManager === 'all' || restaurant.areaManager === selectedAreaManager;
+                    
+                    if (matchesOpsManager && matchesAreaManager) {
+                        restaurantFilter.innerHTML += `<option value="${restaurant.id}">${restaurant.name}</option>`;
+                    }
+                });
+                
+                // تطبيق الفلترة
+                this.filterMonthlyReport();
             }
             
             generateMonthlyReportTable() {
@@ -3699,13 +4009,15 @@
             }
             
             filterMonthlyReport() {
-                const monthSelect = document.getElementById('report-month-select');
-                const restaurantSelect = document.getElementById('report-restaurant-select');
-                const areaManagerSelect = document.getElementById('report-area-manager-select');
+                const opsManagerFilter = document.getElementById('ops-manager-filter');
+                const areaManagerFilter = document.getElementById('area-manager-filter');
+                const restaurantFilter = document.getElementById('restaurant-filter');
+                const monthFilter = document.getElementById('month-filter');
                 
-                const month = monthSelect?.value || 'all';
-                const restaurantId = restaurantSelect?.value || 'all';
-                const areaManager = areaManagerSelect?.value || 'all';
+                const opsManager = opsManagerFilter?.value || 'all';
+                const areaManager = areaManagerFilter?.value || 'all';
+                const restaurantId = restaurantFilter?.value || 'all';
+                const month = monthFilter?.value || 'all';
                 
                 const restaurantName = restaurantId !== 'all' ? 
                     this.dataManager.restaurants.find(r => r.id == restaurantId)?.name : 'all';
@@ -3715,12 +4027,14 @@
                     const rowMonth = row.dataset.month;
                     const rowRestaurant = row.dataset.restaurant;
                     const rowAreaManager = row.dataset.areaManager;
+                    const rowOpsManager = row.dataset.opsManager;
                     
                     const showMonth = month === 'all' || rowMonth === month;
                     const showRestaurant = restaurantName === 'all' || rowRestaurant === restaurantName;
                     const showAreaManager = areaManager === 'all' || rowAreaManager === areaManager;
+                    const showOpsManager = opsManager === 'all' || rowOpsManager === opsManager;
                     
-                    row.style.display = showMonth && showRestaurant && showAreaManager ? '' : 'none';
+                    row.style.display = showMonth && showRestaurant && showAreaManager && showOpsManager ? '' : 'none';
                 });
             }
             
@@ -3795,9 +4109,8 @@
                 const monthlyData = this.dataManager.getAllMonthlyData();
                 const wb = XLSX.utils.book_new();
                 
-                // Create data for Excel sheet
                 const excelData = [
-                    ['التقرير الشهري التفصيلي - شركة نايف للأغذية'],
+                    [`التقرير الشهري التفصيلي - شركة نايف للأغذية - ${this.dataManager.dataYear}`],
                     ['تاريخ التصدير:', new Date().toLocaleDateString('ar-SA')],
                     [''],
                     ['الشهر', 'المطعم', 'مدير المنطقة', 'مدير التشغيل', 'المبيعات', 'إجمالي التكاليف', 'صافي الربح', 'هامش الربح']
@@ -3818,9 +4131,8 @@
                     });
                 });
                 
-                // Add detailed cost data sheet
                 const detailedData = [
-                    ['التفاصيل الشهرية الكاملة حسب معادلات Excel - شركة نايف للأغذية'],
+                    [`التفاصيل الشهرية الكاملة حسب معادلات Excel - شركة نايف للأغذية - ${this.dataManager.dataYear}`],
                     ['تاريخ التصدير:', new Date().toLocaleDateString('ar-SA')],
                     [''],
                     ['الشهر', 'المطعم', 'المبيعات', 'إجمالي تكلفة المواد', 'مجمل الربح', 'مجموع مصاريف التشغيل', 
@@ -3851,16 +4163,17 @@
                 XLSX.utils.book_append_sheet(wb, ws1, 'التقرير الشهري');
                 XLSX.utils.book_append_sheet(wb, ws2, 'التفاصيل الكاملة');
                 
-                XLSX.writeFile(wb, `التقرير_الشهري_${new Date().toISOString().slice(0, 10)}.xlsx`);
+                XLSX.writeFile(wb, `التقرير_الشهري_${this.dataManager.dataYear}_${new Date().toISOString().slice(0, 10)}.xlsx`);
                 this.showNotification('تم تصدير التقرير الشهري إلى ملف Excel', 'success');
             }
             
             showRestaurants() {
                 const restaurants = this.dataManager.restaurants;
+                const managers = this.dataManager.getUniqueManagers();
                 
                 const content = `
                     <div class="dashboard-header">
-                        <h1><i class="fas fa-store"></i> إدارة المطاعم (${restaurants.length} مطعم)</h1>
+                        <h1><i class="fas fa-store"></i> إدارة المطاعم (${restaurants.length} مطعم) - ${this.dataManager.dataYear}</h1>
                         <div class="dashboard-actions">
                             <input type="text" id="restaurant-search" placeholder="بحث عن مطعم أو مدير..." 
                                    style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; min-width: 300px;"
@@ -3870,17 +4183,16 @@
                     
                     <div class="filters">
                         <div class="filter-group">
-                            <label>مدير المنطقة:</label>
-                            <select id="area-manager-filter" onchange="dashboard.filterRestaurants()">
+                            <label>مدير التشغيل:</label>
+                            <select id="ops-manager-filter-rest" onchange="dashboard.filterRestaurants()">
                                 <option value="all">جميع المديرين</option>
-                                ${[...new Set(restaurants.map(r => r.areaManager))].map(manager => `<option value="${manager}">${manager}</option>`).join('')}
+                                ${managers.operationsManagers.map(manager => `<option value="${manager}">${manager}</option>`).join('')}
                             </select>
                         </div>
                         <div class="filter-group">
-                            <label>مدير التشغيل:</label>
-                            <select id="ops-manager-filter" onchange="dashboard.filterRestaurants()">
+                            <label>مدير المنطقة:</label>
+                            <select id="area-manager-filter-rest" onchange="dashboard.filterRestaurants()">
                                 <option value="all">جميع المديرين</option>
-                                ${[...new Set(restaurants.map(r => r.operationsManager))].map(manager => `<option value="${manager}">${manager}</option>`).join('')}
                             </select>
                         </div>
                     </div>
@@ -3928,16 +4240,62 @@
                 `;
                 
                 document.getElementById('content-area').innerHTML = content;
+                
+                // تهيئة الفلاتر الديناميكية
+                setTimeout(() => this.initializeRestaurantFilters(), 100);
+            }
+            
+            initializeRestaurantFilters() {
+                const opsManagerFilter = document.getElementById('ops-manager-filter-rest');
+                const areaManagerFilter = document.getElementById('area-manager-filter-rest');
+                
+                if (opsManagerFilter) {
+                    opsManagerFilter.addEventListener('change', () => {
+                        this.updateRestaurantAreaManagerFilter();
+                    });
+                }
+                
+                this.updateRestaurantAreaManagerFilter();
+            }
+            
+            updateRestaurantAreaManagerFilter() {
+                const opsManagerFilter = document.getElementById('ops-manager-filter-rest');
+                const areaManagerFilter = document.getElementById('area-manager-filter-rest');
+                
+                if (!opsManagerFilter || !areaManagerFilter) return;
+                
+                const selectedOpsManager = opsManagerFilter.value;
+                const managers = this.dataManager.getUniqueManagers();
+                
+                areaManagerFilter.innerHTML = '<option value="all">جميع المديرين</option>';
+                
+                if (selectedOpsManager !== 'all') {
+                    const areaManagers = managers.areaManagersByOpsManager[selectedOpsManager] || [];
+                    areaManagers.forEach(manager => {
+                        areaManagerFilter.innerHTML += `<option value="${manager}">${manager}</option>`;
+                    });
+                } else {
+                    const allAreaManagers = new Set();
+                    this.dataManager.restaurants.forEach(restaurant => {
+                        allAreaManagers.add(restaurant.areaManager);
+                    });
+                    
+                    allAreaManagers.forEach(manager => {
+                        areaManagerFilter.innerHTML += `<option value="${manager}">${manager}</option>`;
+                    });
+                }
+                
+                this.filterRestaurants();
             }
             
             filterRestaurants() {
                 const searchInput = document.getElementById('restaurant-search');
-                const areaManagerFilter = document.getElementById('area-manager-filter');
-                const opsManagerFilter = document.getElementById('ops-manager-filter');
+                const opsManagerFilter = document.getElementById('ops-manager-filter-rest');
+                const areaManagerFilter = document.getElementById('area-manager-filter-rest');
                 
                 const searchTerm = searchInput?.value.toLowerCase() || '';
-                const areaManagerValue = areaManagerFilter?.value || 'all';
                 const opsManagerValue = opsManagerFilter?.value || 'all';
+                const areaManagerValue = areaManagerFilter?.value || 'all';
                 
                 document.querySelectorAll('.restaurant-card').forEach(card => {
                     const name = card.dataset.name.toLowerCase();
@@ -3947,10 +4305,10 @@
                     const matchesSearch = name.includes(searchTerm) || 
                                          areaManager.toLowerCase().includes(searchTerm) ||
                                          opsManager.toLowerCase().includes(searchTerm);
-                    const matchesAreaManager = areaManagerValue === 'all' || areaManager === areaManagerValue;
                     const matchesOpsManager = opsManagerValue === 'all' || opsManager === opsManagerValue;
+                    const matchesAreaManager = areaManagerValue === 'all' || areaManager === areaManagerValue;
                     
-                    card.style.display = matchesSearch && matchesAreaManager && matchesOpsManager ? 
+                    card.style.display = matchesSearch && matchesOpsManager && matchesAreaManager ? 
                         'block' : 'none';
                 });
             }
@@ -3960,7 +4318,7 @@
                 
                 const content = `
                     <div class="dashboard-header">
-                        <h1><i class="fas fa-user-tie"></i> تقرير أداء المديرين</h1>
+                        <h1><i class="fas fa-user-tie"></i> تقرير أداء المديرين - ${this.dataManager.dataYear}</h1>
                         <div class="dashboard-actions">
                             <button class="btn btn-primary" onclick="dashboard.exportManagersReportExcel()">
                                 <i class="fas fa-download"></i> تصدير التقرير (Excel)
@@ -4007,40 +4365,41 @@
                 document.getElementById('content-area').innerHTML = content;
             }
             
-            // تحليل التكاليف التفصيلي
+            // تحليل التكاليف التفصيلي مع الفلاتر الديناميكية
             showCostAnalysis() {
                 const managers = this.dataManager.getUniqueManagers();
                 
                 const content = `
                     <div class="dashboard-header">
-                        <h1><i class="fas fa-money-bill-wave"></i> تحليل التكاليف التفصيلي حسب معادلات Excel</h1>
+                        <h1><i class="fas fa-money-bill-wave"></i> تحليل التكاليف التفصيلي حسب معادلات Excel - ${this.dataManager.dataYear}</h1>
                         <div class="dashboard-actions">
                             <button class="btn btn-primary" onclick="dashboard.exportCostAnalysisExcel()">
                                 <i class="fas fa-download"></i> تصدير التحليل (Excel)
+                            </button>
+                            <button class="btn print-button" onclick="dashboard.showDetailedCostAnalysis()">
+                                <i class="fas fa-print"></i> عرض التكاليف الكاملة
                             </button>
                         </div>
                     </div>
                     
                     <div class="filters">
                         <div class="filter-group">
-                            <label>اختر المطعم:</label>
-                            <select id="cost-restaurant-filter" onchange="dashboard.filterCostAnalysis()">
-                                <option value="all">جميع المطاعم</option>
-                                ${this.dataManager.restaurants.map(r => `<option value="${r.id}">${r.name}</option>`).join('')}
+                            <label>مدير التشغيل:</label>
+                            <select id="cost-ops-manager-filter" onchange="dashboard.filterCostAnalysis()">
+                                <option value="all">جميع المديرين</option>
+                                ${managers.operationsManagers.map(manager => `<option value="${manager}">${manager}</option>`).join('')}
                             </select>
                         </div>
                         <div class="filter-group">
                             <label>مدير المنطقة:</label>
                             <select id="cost-area-manager-filter" onchange="dashboard.filterCostAnalysis()">
                                 <option value="all">جميع المديرين</option>
-                                ${managers.areaManagers.map(manager => `<option value="${manager}">${manager}</option>`).join('')}
                             </select>
                         </div>
                         <div class="filter-group">
-                            <label>مدير التشغيل:</label>
-                            <select id="cost-ops-manager-filter" onchange="dashboard.filterCostAnalysis()">
-                                <option value="all">جميع المديرين</option>
-                                ${managers.operationsManagers.map(manager => `<option value="${manager}">${manager}</option>`).join('')}
+                            <label>اختر المطعم:</label>
+                            <select id="cost-restaurant-filter" onchange="dashboard.filterCostAnalysis()">
+                                <option value="all">جميع المطاعم</option>
                             </select>
                         </div>
                     </div>
@@ -4051,34 +4410,101 @@
                 `;
                 
                 document.getElementById('content-area').innerHTML = content;
+                
+                // تهيئة الفلاتر الديناميكية
+                setTimeout(() => this.initializeCostAnalysisFilters(), 100);
+            }
+            
+            initializeCostAnalysisFilters() {
+                const opsManagerFilter = document.getElementById('cost-ops-manager-filter');
+                const areaManagerFilter = document.getElementById('cost-area-manager-filter');
+                
+                if (opsManagerFilter) {
+                    opsManagerFilter.addEventListener('change', () => {
+                        this.updateCostAnalysisAreaManagerFilter();
+                    });
+                }
+                
+                this.updateCostAnalysisAreaManagerFilter();
+            }
+            
+            updateCostAnalysisAreaManagerFilter() {
+                const opsManagerFilter = document.getElementById('cost-ops-manager-filter');
+                const areaManagerFilter = document.getElementById('cost-area-manager-filter');
+                
+                if (!opsManagerFilter || !areaManagerFilter) return;
+                
+                const selectedOpsManager = opsManagerFilter.value;
+                const managers = this.dataManager.getUniqueManagers();
+                
+                areaManagerFilter.innerHTML = '<option value="all">جميع المديرين</option>';
+                
+                if (selectedOpsManager !== 'all') {
+                    const areaManagers = managers.areaManagersByOpsManager[selectedOpsManager] || [];
+                    areaManagers.forEach(manager => {
+                        areaManagerFilter.innerHTML += `<option value="${manager}">${manager}</option>`;
+                    });
+                } else {
+                    const allAreaManagers = new Set();
+                    this.dataManager.restaurants.forEach(restaurant => {
+                        allAreaManagers.add(restaurant.areaManager);
+                    });
+                    
+                    allAreaManagers.forEach(manager => {
+                        areaManagerFilter.innerHTML += `<option value="${manager}">${manager}</option>`;
+                    });
+                }
+                
+                this.updateCostAnalysisRestaurantFilter();
+            }
+            
+            updateCostAnalysisRestaurantFilter() {
+                const opsManagerFilter = document.getElementById('cost-ops-manager-filter');
+                const areaManagerFilter = document.getElementById('cost-area-manager-filter');
+                const restaurantFilter = document.getElementById('cost-restaurant-filter');
+                
+                if (!restaurantFilter) return;
+                
+                const selectedOpsManager = opsManagerFilter.value;
+                const selectedAreaManager = areaManagerFilter.value;
+                
+                restaurantFilter.innerHTML = '<option value="all">جميع المطاعم</option>';
+                
+                this.dataManager.restaurants.forEach(restaurant => {
+                    const matchesOpsManager = selectedOpsManager === 'all' || restaurant.operationsManager === selectedOpsManager;
+                    const matchesAreaManager = selectedAreaManager === 'all' || restaurant.areaManager === selectedAreaManager;
+                    
+                    if (matchesOpsManager && matchesAreaManager) {
+                        restaurantFilter.innerHTML += `<option value="${restaurant.id}">${restaurant.name}</option>`;
+                    }
+                });
+                
+                this.filterCostAnalysis();
             }
             
             generateCostAnalysisTable(restaurantId, areaManager, opsManager) {
                 let costDetails = this.dataManager.getAllCostDetails();
                 
-                // Apply filters
-                if (restaurantId !== 'all') {
-                    const restaurant = this.dataManager.getRestaurantData(parseInt(restaurantId));
-                    costDetails = costDetails.filter(c => c.name === restaurant?.name);
+                if (opsManager !== 'all') {
+                    costDetails = costDetails.filter(c => {
+                        const restaurant = this.dataManager.restaurants.find(r => r.name === c.name);
+                        return restaurant && restaurant.operationsManager === opsManager;
+                    });
                 }
                 
                 if (areaManager !== 'all') {
                     costDetails = costDetails.filter(c => c.areaManager === areaManager);
                 }
                 
-                if (opsManager !== 'all') {
-                    costDetails = costDetails.filter(c => c.operationsManager === opsManager);
+                if (restaurantId !== 'all') {
+                    const restaurant = this.dataManager.getRestaurantData(parseInt(restaurantId));
+                    costDetails = costDetails.filter(c => c.name === restaurant?.name);
                 }
                 
                 let tableHTML = `
                     <div class="table-container">
                         <div class="table-header">
                             <h2><i class="fas fa-table"></i> تحليل التكاليف السنوية</h2>
-                            <div class="table-controls">
-                                <button class="btn btn-secondary" onclick="dashboard.showDetailedCostAnalysis()">
-                                    <i class="fas fa-expand"></i> عرض التفاصيل الكاملة
-                                </button>
-                            </div>
                         </div>
                         <div class="table-wrapper">
                             <table class="data-table">
@@ -4134,102 +4560,122 @@
             }
             
             showDetailedCostAnalysis() {
-                const detailedTable = document.getElementById('detailed-monthly-table');
+                const modal = document.getElementById('detailed-costs-modal');
+                const modalBody = document.getElementById('detailed-costs-body');
+                
                 const costDetails = this.dataManager.getAllCostDetails();
                 
                 let tableHTML = `
-                    <div class="table-container" style="margin-top: 30px;">
-                        <div class="table-header">
-                            <h2><i class="fas fa-table"></i> تحليل التكاليف التفصيلي الكامل</h2>
-                            <button class="btn btn-secondary" onclick="dashboard.hideDetailedMonthlyTable()">
-                                <i class="fas fa-times"></i> إغلاق
-                            </button>
-                        </div>
-                        <div class="table-wrapper">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>المطعم</th>
-                                        <th>مدير المنطقة</th>
-                                        <th>مدير التشغيل</th>
-                                        <th>تكلفة غذاء مخازن</th>
-                                        <th>تكلفة لحوم</th>
-                                        <th>تكلفة مرطبات</th>
-                                        <th>تكلفة تعبئة</th>
-                                        <th>تكلفة خبز</th>
-                                        <th>تكلفة بهارات</th>
-                                        <th>تكلفة فحم</th>
-                                        <th>تكلفة خضار</th>
-                                        <th>تكلفة غاز</th>
-                                        <th>رواتب وأجور</th>
-                                        <th>أعمال إضافية</th>
-                                        <th>توالف مواد</th>
-                                        <th>صيانة</th>
-                                        <th>نظافة</th>
-                                        <th>لوازم عمال</th>
-                                        <th>لوازم مطاعم</th>
-                                        <th>قرطاسية</th>
-                                        <th>وجبات عمال</th>
-                                        <th>مصاريف أخرى</th>
-                                        <th>إجمالي التكاليف</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h3><i class="fas fa-table"></i> تحليل التكاليف التفصيلي الكامل - ${this.dataManager.dataYear}</h3>
+                        <p>تاريخ الطباعة: ${Helpers.getFormattedDate().date}</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <button class="btn print-button" onclick="window.print()" style="margin-left: 10px;">
+                            <i class="fas fa-print"></i> طباعة
+                        </button>
+                    </div>
+                    
+                    <table class="detailed-costs-table">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" class="cost-header">المطعم</th>
+                                <th rowspan="2" class="cost-header">مدير المنطقة</th>
+                                <th rowspan="2" class="cost-header">مدير التشغيل</th>
+                                <th colspan="9" class="subcost-header">التكاليف المادية</th>
+                                <th colspan="10" class="subcost-header">مصاريف التشغيل</th>
+                                <th rowspan="2" class="cost-header">المصاريف العمومية</th>
+                                <th rowspan="2" class="cost-header">إجمالي التكاليف</th>
+                            </tr>
+                            <tr>
+                                <th class="subcost-header">مواد غذائية</th>
+                                <th class="subcost-header">لحوم</th>
+                                <th class="subcost-header">مرطبات</th>
+                                <th class="subcost-header">تعبئة</th>
+                                <th class="subcost-header">خبز</th>
+                                <th class="subcost-header">بهارات</th>
+                                <th class="subcost-header">فحم</th>
+                                <th class="subcost-header">خضار</th>
+                                <th class="subcost-header">غاز</th>
+                                <th class="subcost-header">رواتب</th>
+                                <th class="subcost-header">أعمال إضافية</th>
+                                <th class="subcost-header">توالف مواد</th>
+                                <th class="subcost-header">صيانة</th>
+                                <th class="subcost-header">نظافة</th>
+                                <th class="subcost-header">لوازم عمال</th>
+                                <th class="subcost-header">لوازم مطاعم</th>
+                                <th class="subcost-header">قرطاسية</th>
+                                <th class="subcost-header">وجبات عمال</th>
+                                <th class="subcost-header">أخرى</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                 `;
                 
                 costDetails.forEach(cost => {
+                    const totalCosts = 
+                        cost.totalMaterialCost + 
+                        cost.totalOperatingCost + 
+                        cost.generalExpenses;
+                    
                     tableHTML += `
                         <tr>
-                            <td>${cost.name}</td>
+                            <td><strong>${cost.name}</strong></td>
                             <td>${cost.areaManager}</td>
                             <td>${cost.operationsManager}</td>
-                            <td>${Helpers.formatNumber(cost.foodCost)}</td>
-                            <td>${Helpers.formatNumber(cost.meatCost)}</td>
-                            <td>${Helpers.formatNumber(cost.drinksCost)}</td>
-                            <td>${Helpers.formatNumber(cost.packagingCost)}</td>
-                            <td>${Helpers.formatNumber(cost.breadCost)}</td>
-                            <td>${Helpers.formatNumber(cost.spicesCost)}</td>
-                            <td>${Helpers.formatNumber(cost.coalCost)}</td>
-                            <td>${Helpers.formatNumber(cost.vegetablesCost)}</td>
-                            <td>${Helpers.formatNumber(cost.gasCost)}</td>
-                            <td>${Helpers.formatNumber(cost.salariesCost)}</td>
-                            <td>${Helpers.formatNumber(cost.extraWorkCost)}</td>
-                            <td>${Helpers.formatNumber(cost.wasteCost)}</td>
-                            <td>${Helpers.formatNumber(cost.maintenanceCost)}</td>
-                            <td>${Helpers.formatNumber(cost.cleaningCost)}</td>
-                            <td>${Helpers.formatNumber(cost.workersSuppliesCost)}</td>
-                            <td>${Helpers.formatNumber(cost.restaurantSuppliesCost)}</td>
-                            <td>${Helpers.formatNumber(cost.stationeryCost)}</td>
-                            <td>${Helpers.formatNumber(cost.workersMealsCost)}</td>
-                            <td>${Helpers.formatNumber(cost.otherOperatingCost)}</td>
-                            <td><strong>${Helpers.formatNumber(
-                                cost.totalMaterialCost + 
-                                cost.totalOperatingCost + 
-                                cost.generalExpenses
-                            )}</strong></td>
+                            <td class="material-cost">${Helpers.formatNumber(cost.foodCost)}</td>
+                            <td class="material-cost">${Helpers.formatNumber(cost.meatCost)}</td>
+                            <td class="material-cost">${Helpers.formatNumber(cost.drinksCost)}</td>
+                            <td class="material-cost">${Helpers.formatNumber(cost.packagingCost)}</td>
+                            <td class="material-cost">${Helpers.formatNumber(cost.breadCost)}</td>
+                            <td class="material-cost">${Helpers.formatNumber(cost.spicesCost)}</td>
+                            <td class="material-cost">${Helpers.formatNumber(cost.coalCost)}</td>
+                            <td class="material-cost">${Helpers.formatNumber(cost.vegetablesCost)}</td>
+                            <td class="material-cost">${Helpers.formatNumber(cost.gasCost)}</td>
+                            <td class="operating-cost">${Helpers.formatNumber(cost.salariesCost)}</td>
+                            <td class="operating-cost">${Helpers.formatNumber(cost.extraWorkCost)}</td>
+                            <td class="operating-cost">${Helpers.formatNumber(cost.wasteCost)}</td>
+                            <td class="operating-cost">${Helpers.formatNumber(cost.maintenanceCost)}</td>
+                            <td class="operating-cost">${Helpers.formatNumber(cost.cleaningCost)}</td>
+                            <td class="operating-cost">${Helpers.formatNumber(cost.workersSuppliesCost)}</td>
+                            <td class="operating-cost">${Helpers.formatNumber(cost.restaurantSuppliesCost)}</td>
+                            <td class="operating-cost">${Helpers.formatNumber(cost.stationeryCost)}</td>
+                            <td class="operating-cost">${Helpers.formatNumber(cost.workersMealsCost)}</td>
+                            <td class="operating-cost">${Helpers.formatNumber(cost.otherOperatingCost)}</td>
+                            <td class="general-cost">${Helpers.formatNumber(cost.generalExpenses)}</td>
+                            <td><strong>${Helpers.formatNumber(totalCosts)}</strong></td>
                         </tr>
                     `;
                 });
                 
                 tableHTML += `
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                        </tbody>
+                    </table>
                 `;
                 
-                detailedTable.innerHTML = tableHTML;
-                detailedTable.style.display = 'block';
+                modalBody.innerHTML = tableHTML;
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                
+                const closeBtn = modal.querySelector('.close-btn');
+                closeBtn.onclick = () => this.closeModal(modal);
+                
+                modal.onclick = (e) => {
+                    if (e.target === modal) {
+                        this.closeModal(modal);
+                    }
+                };
             }
             
             filterCostAnalysis() {
-                const restaurantFilter = document.getElementById('cost-restaurant-filter');
-                const areaManagerFilter = document.getElementById('cost-area-manager-filter');
                 const opsManagerFilter = document.getElementById('cost-ops-manager-filter');
+                const areaManagerFilter = document.getElementById('cost-area-manager-filter');
+                const restaurantFilter = document.getElementById('cost-restaurant-filter');
                 
-                const restaurantId = restaurantFilter?.value || 'all';
-                const areaManager = areaManagerFilter?.value || 'all';
                 const opsManager = opsManagerFilter?.value || 'all';
+                const areaManager = areaManagerFilter?.value || 'all';
+                const restaurantId = restaurantFilter?.value || 'all';
                 
                 const resultsDiv = document.getElementById('cost-analysis-results');
                 resultsDiv.innerHTML = this.generateCostAnalysisTable(restaurantId, areaManager, opsManager);
@@ -4240,7 +4686,7 @@
                 const wb = XLSX.utils.book_new();
                 
                 const excelData = [
-                    ['تحليل التكاليف التفصيلي - شركة نايف للأغذية'],
+                    [`تحليل التكاليف التفصيلي - شركة نايف للأغذية - ${this.dataManager.dataYear}`],
                     ['تاريخ التصدير:', new Date().toLocaleDateString('ar-SA')],
                     [''],
                     ['المطعم', 'مدير المنطقة', 'مدير التشغيل', 'المبيعات السنوية', 'إجمالي تكلفة المواد', 
@@ -4272,17 +4718,17 @@
                 const ws = XLSX.utils.aoa_to_sheet(excelData);
                 XLSX.utils.book_append_sheet(wb, ws, 'تحليل التكاليف');
                 
-                XLSX.writeFile(wb, `تحليل_التكاليف_${new Date().toISOString().slice(0, 10)}.xlsx`);
+                XLSX.writeFile(wb, `تحليل_التكاليف_${this.dataManager.dataYear}_${new Date().toISOString().slice(0, 10)}.xlsx`);
                 this.showNotification('تم تصدير تحليل التكاليف إلى ملف Excel', 'success');
             }
             
-            // تحليل الربحية المتقدم
+            // تحليل الربحية المتقدم مع الفلاتر الديناميكية
             showProfitAnalysis() {
                 const managers = this.dataManager.getUniqueManagers();
                 
                 const content = `
                     <div class="dashboard-header">
-                        <h1><i class="fas fa-chart-line"></i> تحليل الربحية المتقدم حسب معادلات Excel</h1>
+                        <h1><i class="fas fa-chart-line"></i> تحليل الربحية المتقدم حسب معادلات Excel - ${this.dataManager.dataYear}</h1>
                         <div class="dashboard-actions">
                             <button class="btn btn-primary" onclick="dashboard.exportProfitAnalysisExcel()">
                                 <i class="fas fa-download"></i> تصدير التحليل (Excel)
@@ -4292,24 +4738,22 @@
                     
                     <div class="filters">
                         <div class="filter-group">
-                            <label>اختر المطعم:</label>
-                            <select id="profit-restaurant-filter" onchange="dashboard.filterProfitAnalysis()">
-                                <option value="all">جميع المطاعم</option>
-                                ${this.dataManager.restaurants.map(r => `<option value="${r.id}">${r.name}</option>`).join('')}
+                            <label>مدير التشغيل:</label>
+                            <select id="profit-ops-manager-filter" onchange="dashboard.filterProfitAnalysis()">
+                                <option value="all">جميع المديرين</option>
+                                ${managers.operationsManagers.map(manager => `<option value="${manager}">${manager}</option>`).join('')}
                             </select>
                         </div>
                         <div class="filter-group">
                             <label>مدير المنطقة:</label>
                             <select id="profit-area-manager-filter" onchange="dashboard.filterProfitAnalysis()">
                                 <option value="all">جميع المديرين</option>
-                                ${managers.areaManagers.map(manager => `<option value="${manager}">${manager}</option>`).join('')}
                             </select>
                         </div>
                         <div class="filter-group">
-                            <label>مدير التشغيل:</label>
-                            <select id="profit-ops-manager-filter" onchange="dashboard.filterProfitAnalysis()">
-                                <option value="all">جميع المديرين</option>
-                                ${managers.operationsManagers.map(manager => `<option value="${manager}">${manager}</option>`).join('')}
+                            <label>اختر المطعم:</label>
+                            <select id="profit-restaurant-filter" onchange="dashboard.filterProfitAnalysis()">
+                                <option value="all">جميع المطاعم</option>
                             </select>
                         </div>
                     </div>
@@ -4320,6 +4764,75 @@
                 `;
                 
                 document.getElementById('content-area').innerHTML = content;
+                
+                setTimeout(() => this.initializeProfitAnalysisFilters(), 100);
+            }
+            
+            initializeProfitAnalysisFilters() {
+                const opsManagerFilter = document.getElementById('profit-ops-manager-filter');
+                const areaManagerFilter = document.getElementById('profit-area-manager-filter');
+                
+                if (opsManagerFilter) {
+                    opsManagerFilter.addEventListener('change', () => {
+                        this.updateProfitAnalysisAreaManagerFilter();
+                    });
+                }
+                
+                this.updateProfitAnalysisAreaManagerFilter();
+            }
+            
+            updateProfitAnalysisAreaManagerFilter() {
+                const opsManagerFilter = document.getElementById('profit-ops-manager-filter');
+                const areaManagerFilter = document.getElementById('profit-area-manager-filter');
+                
+                if (!opsManagerFilter || !areaManagerFilter) return;
+                
+                const selectedOpsManager = opsManagerFilter.value;
+                const managers = this.dataManager.getUniqueManagers();
+                
+                areaManagerFilter.innerHTML = '<option value="all">جميع المديرين</option>';
+                
+                if (selectedOpsManager !== 'all') {
+                    const areaManagers = managers.areaManagersByOpsManager[selectedOpsManager] || [];
+                    areaManagers.forEach(manager => {
+                        areaManagerFilter.innerHTML += `<option value="${manager}">${manager}</option>`;
+                    });
+                } else {
+                    const allAreaManagers = new Set();
+                    this.dataManager.restaurants.forEach(restaurant => {
+                        allAreaManagers.add(restaurant.areaManager);
+                    });
+                    
+                    allAreaManagers.forEach(manager => {
+                        areaManagerFilter.innerHTML += `<option value="${manager}">${manager}</option>`;
+                    });
+                }
+                
+                this.updateProfitAnalysisRestaurantFilter();
+            }
+            
+            updateProfitAnalysisRestaurantFilter() {
+                const opsManagerFilter = document.getElementById('profit-ops-manager-filter');
+                const areaManagerFilter = document.getElementById('profit-area-manager-filter');
+                const restaurantFilter = document.getElementById('profit-restaurant-filter');
+                
+                if (!restaurantFilter) return;
+                
+                const selectedOpsManager = opsManagerFilter.value;
+                const selectedAreaManager = areaManagerFilter.value;
+                
+                restaurantFilter.innerHTML = '<option value="all">جميع المطاعم</option>';
+                
+                this.dataManager.restaurants.forEach(restaurant => {
+                    const matchesOpsManager = selectedOpsManager === 'all' || restaurant.operationsManager === selectedOpsManager;
+                    const matchesAreaManager = selectedAreaManager === 'all' || restaurant.areaManager === selectedAreaManager;
+                    
+                    if (matchesOpsManager && matchesAreaManager) {
+                        restaurantFilter.innerHTML += `<option value="${restaurant.id}">${restaurant.name}</option>`;
+                    }
+                });
+                
+                this.filterProfitAnalysis();
             }
             
             generateProfitAnalysisTable(restaurantId, areaManager, opsManager) {
@@ -4343,18 +4856,16 @@
                     };
                 }).filter(Boolean);
                 
-                // Apply filters
-                if (restaurantId !== 'all') {
-                    const restaurant = this.dataManager.getRestaurantData(parseInt(restaurantId));
-                    restaurants = restaurants.filter(r => r.id === parseInt(restaurantId));
+                if (opsManager !== 'all') {
+                    restaurants = restaurants.filter(r => r.operationsManager === opsManager);
                 }
                 
                 if (areaManager !== 'all') {
                     restaurants = restaurants.filter(r => r.areaManager === areaManager);
                 }
                 
-                if (opsManager !== 'all') {
-                    restaurants = restaurants.filter(r => r.operationsManager === opsManager);
+                if (restaurantId !== 'all') {
+                    restaurants = restaurants.filter(r => r.id === parseInt(restaurantId));
                 }
                 
                 const sortedRestaurants = restaurants.sort((a, b) => b.profitMargin - a.profitMargin);
@@ -4420,13 +4931,13 @@
             }
             
             filterProfitAnalysis() {
-                const restaurantFilter = document.getElementById('profit-restaurant-filter');
-                const areaManagerFilter = document.getElementById('profit-area-manager-filter');
                 const opsManagerFilter = document.getElementById('profit-ops-manager-filter');
+                const areaManagerFilter = document.getElementById('profit-area-manager-filter');
+                const restaurantFilter = document.getElementById('profit-restaurant-filter');
                 
-                const restaurantId = restaurantFilter?.value || 'all';
-                const areaManager = areaManagerFilter?.value || 'all';
                 const opsManager = opsManagerFilter?.value || 'all';
+                const areaManager = areaManagerFilter?.value || 'all';
+                const restaurantId = restaurantFilter?.value || 'all';
                 
                 const resultsDiv = document.getElementById('profit-analysis-results');
                 resultsDiv.innerHTML = this.generateProfitAnalysisTable(restaurantId, areaManager, opsManager);
@@ -4441,7 +4952,7 @@
                 const wb = XLSX.utils.book_new();
                 
                 const excelData = [
-                    ['تحليل الربحية المتقدم حسب معادلات Excel - شركة نايف للأغذية'],
+                    [`تحليل الربحية المتقدم حسب معادلات Excel - شركة نايف للأغذية - ${this.dataManager.dataYear}`],
                     ['تاريخ التصدير:', new Date().toLocaleDateString('ar-SA')],
                     [''],
                     ['#', 'المطعم', 'مدير المنطقة', 'مدير التشغيل', 'المبيعات السنوية', 'تكلفة المواد', 
@@ -4471,7 +4982,7 @@
                 const ws = XLSX.utils.aoa_to_sheet(excelData);
                 XLSX.utils.book_append_sheet(wb, ws, 'تحليل الربحية');
                 
-                XLSX.writeFile(wb, `تحليل_الربحية_${new Date().toISOString().slice(0, 10)}.xlsx`);
+                XLSX.writeFile(wb, `تحليل_الربحية_${this.dataManager.dataYear}_${new Date().toISOString().slice(0, 10)}.xlsx`);
                 this.showNotification('تم تصدير تحليل الربحية إلى ملف Excel', 'success');
             }
             
@@ -4485,18 +4996,43 @@
                 
                 const percentages = this.dataManager.getPlanningPercentages();
                 const sampleRestaurant = this.dataManager.restaurants[0];
-                const novemberData = this.dataManager.getOctoberData(sampleRestaurant);
+                const sourceData = this.dataManager.getSourceMonthData(sampleRestaurant);
+                const availableMonths = this.dataManager.getAvailableMonths();
                 
                 const content = `
                     <div class="dashboard-header">
-                        <h1><i class="fas fa-chart-pie"></i> خطة تحسين الأداء 2026 (حساب نسبي حسب أكتوبر)</h1>
+                        <h1><i class="fas fa-chart-pie"></i> خطة تحسين الأداء ${this.dataManager.planningYear} (حساب نسبي حسب ${this.dataManager.sourceMonth})</h1>
                         <div class="dashboard-actions">
                             <button class="btn btn-primary" onclick="dashboard.savePlanningPercentages()">
                                 <i class="fas fa-save"></i> حفظ النسب
                             </button>
-                            <button class="btn btn-secondary" onclick="dashboard.generatePlanningTemplate2026()">
-                                <i class="fas fa-download"></i> إنشاء خطة 2026
+                            <button class="btn btn-secondary" onclick="dashboard.generatePlanningTemplate()">
+                                <i class="fas fa-download"></i> إنشاء خطة ${this.dataManager.planningYear}
                             </button>
+                        </div>
+                    </div>
+                    
+                    <div class="planning-year-selector">
+                        <h4><i class="fas fa-calendar-alt"></i> إعدادات السنوات</h4>
+                        <div class="year-input-group">
+                            <div>
+                                <label>سنة البيانات الحالية:</label>
+                                <input type="number" id="current-data-year" value="${this.dataManager.dataYear}" min="2020" max="2030" 
+                                       onchange="dashboard.updatePlanningYears()">
+                            </div>
+                            <div>
+                                <label>سنة الخطة المستهدفة:</label>
+                                <input type="number" id="planning-year" value="${this.dataManager.planningYear}" min="2020" max="2030"
+                                       onchange="dashboard.updatePlanningYears()">
+                            </div>
+                            <div>
+                                <label>شهر الأساس:</label>
+                                <select id="source-month-select" onchange="dashboard.updateSourceMonth()">
+                                    ${availableMonths.map(month => 
+                                        `<option value="${month}" ${month === this.dataManager.sourceMonth ? 'selected' : ''}>${month}</option>`
+                                    ).join('')}
+                                </select>
+                            </div>
                         </div>
                     </div>
                     
@@ -4504,11 +5040,11 @@
                         <div class="percentage-controls">
                             <h3><i class="fas fa-sliders-h"></i> تعيين نسب الزيادة/النقصان</h3>
                             <p style="margin-bottom: 20px; color: #666; font-size: 0.95rem;">
-                                يتم حساب القيم المستهدفة لسنة 2026 بناءً على:
-                                <br>1. بيانات شهر أكتوبر 2025 كأساس
+                                يتم حساب القيم المستهدفة لسنة ${this.dataManager.planningYear} بناءً على:
+                                <br>1. بيانات شهر ${this.dataManager.sourceMonth} كأساس
                                 <br>2. النسب المحددة لكل حساب
-                                <br>3. تعديل عدد أيام الشهر (31 يوم لشهر أكتوبر)
-                                <br>4. صيغة الحساب: (قيمة أكتوبر / 31 × عدد أيام الشهر الهدف) × (1 + النسبة/100)
+                                <br>3. تعديل عدد أيام الشهر
+                                <br>4. صيغة الحساب: (قيمة الشهر الأساسي ÷ عدد أيامه × عدد أيام الشهر الهدف) × (1 + النسبة/100)
                             </p>
                             
                             <div class="percentage-group">
@@ -4563,13 +5099,13 @@
                         <div class="percentage-preview">
                             <h3><i class="fas fa-eye"></i> معاينة الحسابات</h3>
                             <p style="margin-bottom: 20px; color: #666; font-size: 0.95rem;">
-                                مثال تطبيقي بناءً على بيانات أكتوبر 2025 لأحد المطاعم:
+                                مثال تطبيقي بناءً على بيانات ${this.dataManager.sourceMonth} لأحد المطاعم:
                             </p>
                             
                             <div class="preview-summary">
                                 <div class="preview-item">
-                                    <span>المبيعات أكتوبر 2025:</span>
-                                    <span class="value">${Helpers.formatNumber(novemberData.sales)} د.ك</span>
+                                    <span>المبيعات ${this.dataManager.sourceMonth}:</span>
+                                    <span class="value">${Helpers.formatNumber(sourceData.sales)} د.ك</span>
                                 </div>
                                 <div class="preview-item">
                                     <span>نسبة الزيادة المحددة:</span>
@@ -4578,10 +5114,10 @@
                             </div>
                             
                             <div class="preview-calculation">
-                                <strong>مثال حسابي لشهر يناير 2026:</strong>
-                                <br>المعادلة: (${Helpers.formatNumber(novemberData.sales)} ÷ 30 × 31) × (1 + ${percentages.salesPercentage}%)
-                                <br>الحساب: (${Helpers.formatNumber(novemberData.sales / 30)} × 31) × 1.${percentages.salesPercentage}
-                                <br>النتيجة: ${Helpers.formatNumber(this.dataManager.calculateMonthValue(novemberData.sales, percentages.salesPercentage, 31))} د.ك
+                                <strong>مثال حسابي لشهر يناير ${this.dataManager.planningYear}:</strong>
+                                <br>المعادلة: (${Helpers.formatNumber(sourceData.sales)} ÷ ${this.dataManager.getSourceMonthDays()} × 31) × (1 + ${percentages.salesPercentage}%)
+                                <br>الحساب: (${Helpers.formatNumber(sourceData.sales / this.dataManager.getSourceMonthDays())} × 31) × 1.${percentages.salesPercentage}
+                                <br>النتيجة: ${Helpers.formatNumber(this.dataManager.calculateMonthValue(sourceData.sales, percentages.salesPercentage, 31, this.dataManager.getSourceMonthDays()))} د.ك
                             </div>
                             
                             <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
@@ -4589,23 +5125,41 @@
                                     <i class="fas fa-info-circle"></i> معلومات مهمة
                                 </h4>
                                 <ul style="color: #666; font-size: 0.9rem; padding-right: 20px;">
-                                    <li>يتم أخذ بيانات شهر أكتوبر 2025 كأساس للحسابات</li>
-                                    <li>يتم تعديل القيم حسب عدد أيام كل شهر (يناير 31 يوم، فبراير 28 يوم، إلخ)</li>
+                                    <li>يتم أخذ بيانات شهر ${this.dataManager.sourceMonth} كأساس للحسابات</li>
+                                    <li>يتم تعديل القيم حسب عدد أيام كل شهر (يناير 31 يوم، فبراير 28/29 يوم، إلخ)</li>
                                     <li>يتم تطبيق النسبة المحددة لكل حساب على حدة</li>
                                     <li>يتم حساب القيم المحسوبة (المجملات) تلقائياً حسب معادلات Excel</li>
                                     <li>سيتم إنشاء ملف Excel يحتوي على شيت لكل مطعم (31 صف لكل مطعم)</li>
                                 </ul>
                             </div>
                             
-                            <button class="btn btn-primary" onclick="dashboard.generatePlanningTemplate2026()" 
+                            <button class="btn btn-primary" onclick="dashboard.generatePlanningTemplate()" 
                                     style="margin-top: 20px; width: 100%; padding: 12px;">
-                                <i class="fas fa-file-excel"></i> إنشاء ملف خطة 2026
+                                <i class="fas fa-file-excel"></i> إنشاء ملف خطة ${this.dataManager.planningYear}
                             </button>
                         </div>
                     </div>
                 `;
                 
                 document.getElementById('content-area').innerHTML = content;
+            }
+            
+            updatePlanningYears() {
+                const currentYear = document.getElementById('current-data-year').value;
+                const planningYear = document.getElementById('planning-year').value;
+                
+                this.dataManager.setDataYear(currentYear);
+                this.dataManager.setPlanningYear(planningYear);
+                
+                this.showNotification(`تم تحديث السنوات: البيانات ${currentYear}، الخطة ${planningYear}`, 'success');
+                this.showPlanning();
+            }
+            
+            updateSourceMonth() {
+                const sourceMonth = document.getElementById('source-month-select').value;
+                this.dataManager.setSourceMonth(sourceMonth);
+                this.showNotification(`تم تحديث شهر الأساس إلى ${sourceMonth}`, 'success');
+                this.showPlanning();
             }
             
             generateCostPercentageControls(percentages) {
@@ -4800,25 +5354,22 @@
                 this.showNotification('تم حفظ النسب بنجاح', 'success');
             }
             
-            generatePlanningTemplate2026() {
+            generatePlanningTemplate() {
                 try {
                     if (this.dataManager.restaurants.length === 0) {
                         this.showNotification('لا توجد بيانات مطاعم. يرجى تحميل ملف Excel أولاً.', 'error');
                         return;
                     }
                     
-                    this.showNotification('جار إنشاء ملف خطة 2026...', 'info');
+                    this.showNotification('جار إنشاء ملف خطة ' + this.dataManager.planningYear + '...', 'info');
                     
-                    // حفظ النسب أولاً
                     this.savePlanningPercentages();
                     
-                    // إنشاء ملف التخطيط
-                    const wb = this.dataManager.generatePlanningTemplate2026();
+                    const wb = this.dataManager.generatePlanningTemplate();
                     
-                    // حفظ الملف
-                    XLSX.writeFile(wb, `خطة_2026_شركة_نايف_للأغذية_${new Date().toISOString().slice(0, 10)}.xlsx`);
+                    XLSX.writeFile(wb, `خطة_${this.dataManager.planningYear}_شركة_نايف_للأغذية_${new Date().toISOString().slice(0, 10)}.xlsx`);
                     
-                    this.showNotification('تم إنشاء ملف خطة 2026 بنجاح!', 'success');
+                    this.showNotification('تم إنشاء ملف خطة ' + this.dataManager.planningYear + ' بنجاح!', 'success');
                     
                 } catch (error) {
                     console.error('Error generating planning template:', error);
@@ -4829,10 +5380,11 @@
             // مقارنة أداء المطاعم
             showComparison() {
                 const restaurants = this.dataManager.restaurants;
+                const managers = this.dataManager.getUniqueManagers();
                 
                 const content = `
                     <div class="dashboard-header">
-                        <h1><i class="fas fa-chart-bar"></i> مقارنة أداء المطاعم</h1>
+                        <h1><i class="fas fa-chart-bar"></i> مقارنة أداء المطاعم - ${this.dataManager.dataYear}</h1>
                         <div class="dashboard-actions">
                             <button class="btn btn-primary" onclick="dashboard.exportComparisonExcel()">
                                 <i class="fas fa-download"></i> تصدير المقارنة (Excel)
@@ -4842,9 +5394,21 @@
                     
                     <div class="comparison-controls">
                         <div class="filter-group">
+                            <label>مدير التشغيل:</label>
+                            <select id="compare-ops-manager-filter" onchange="dashboard.updateComparisonFilters()">
+                                <option value="all">جميع المديرين</option>
+                                ${managers.operationsManagers.map(manager => `<option value="${manager}">${manager}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>مدير المنطقة:</label>
+                            <select id="compare-area-manager-filter" onchange="dashboard.updateComparisonFilters()">
+                                <option value="all">جميع المديرين</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
                             <label>اختر المطاعم للمقارنة (2-5 مطاعم):</label>
                             <select id="compare-restaurants" multiple style="height: 200px; width: 100%;">
-                                ${restaurants.map(r => `<option value="${r.id}">${r.name} - ${r.areaManager}</option>`).join('')}
                             </select>
                         </div>
                         <div class="filter-group">
@@ -4867,6 +5431,61 @@
                 `;
                 
                 document.getElementById('content-area').innerHTML = content;
+                
+                setTimeout(() => this.updateComparisonFilters(), 100);
+            }
+            
+            updateComparisonFilters() {
+                const opsManagerFilter = document.getElementById('compare-ops-manager-filter');
+                const areaManagerFilter = document.getElementById('compare-area-manager-filter');
+                const restaurantSelect = document.getElementById('compare-restaurants');
+                
+                if (!opsManagerFilter || !areaManagerFilter || !restaurantSelect) return;
+                
+                const selectedOpsManager = opsManagerFilter.value;
+                const managers = this.dataManager.getUniqueManagers();
+                
+                areaManagerFilter.innerHTML = '<option value="all">جميع المديرين</option>';
+                
+                if (selectedOpsManager !== 'all') {
+                    const areaManagers = managers.areaManagersByOpsManager[selectedOpsManager] || [];
+                    areaManagers.forEach(manager => {
+                        areaManagerFilter.innerHTML += `<option value="${manager}">${manager}</option>`;
+                    });
+                } else {
+                    const allAreaManagers = new Set();
+                    this.dataManager.restaurants.forEach(restaurant => {
+                        allAreaManagers.add(restaurant.areaManager);
+                    });
+                    
+                    allAreaManagers.forEach(manager => {
+                        areaManagerFilter.innerHTML += `<option value="${manager}">${manager}</option>`;
+                    });
+                }
+                
+                this.updateComparisonRestaurants();
+            }
+            
+            updateComparisonRestaurants() {
+                const opsManagerFilter = document.getElementById('compare-ops-manager-filter');
+                const areaManagerFilter = document.getElementById('compare-area-manager-filter');
+                const restaurantSelect = document.getElementById('compare-restaurants');
+                
+                if (!restaurantSelect) return;
+                
+                const selectedOpsManager = opsManagerFilter.value;
+                const selectedAreaManager = areaManagerFilter.value;
+                
+                restaurantSelect.innerHTML = '';
+                
+                this.dataManager.restaurants.forEach(restaurant => {
+                    const matchesOpsManager = selectedOpsManager === 'all' || restaurant.operationsManager === selectedOpsManager;
+                    const matchesAreaManager = selectedAreaManager === 'all' || restaurant.areaManager === selectedAreaManager;
+                    
+                    if (matchesOpsManager && matchesAreaManager) {
+                        restaurantSelect.innerHTML += `<option value="${restaurant.id}">${restaurant.name} - ${restaurant.areaManager}</option>`;
+                    }
+                });
             }
             
             generateComparison() {
@@ -5083,7 +5702,7 @@
                 const wb = XLSX.utils.book_new();
                 
                 const comparisonData = [
-                    ['مقارنة أداء المطاعم حسب معادلات Excel - شركة نايف للأغذية'],
+                    [`مقارنة أداء المطاعم حسب معادلات Excel - شركة نايف للأغذية - ${this.dataManager.dataYear}`],
                     ['تاريخ التصدير:', new Date().toLocaleDateString('ar-SA')],
                     [''],
                     ['المطعم', 'مدير المنطقة', 'مدير التشغيل', 'المبيعات السنوية', 'تكلفة المواد', 
@@ -5110,7 +5729,7 @@
                 const ws = XLSX.utils.aoa_to_sheet(comparisonData);
                 XLSX.utils.book_append_sheet(wb, ws, 'مقارنة المطاعم');
                 
-                XLSX.writeFile(wb, `مقارنة_المطاعم_${new Date().toISOString().slice(0, 10)}.xlsx`);
+                XLSX.writeFile(wb, `مقارنة_المطاعم_${this.dataManager.dataYear}_${new Date().toISOString().slice(0, 10)}.xlsx`);
                 this.showNotification('تم تصدير المقارنة إلى ملف Excel', 'success');
             }
             
@@ -5119,7 +5738,7 @@
                 const wb = XLSX.utils.book_new();
                 
                 const managerData = [
-                    ['تقرير أداء المديرين - شركة نايف للأغذية'],
+                    [`تقرير أداء المديرين - شركة نايف للأغذية - ${this.dataManager.dataYear}`],
                     ['تاريخ التصدير:', new Date().toLocaleDateString('ar-SA')],
                     [''],
                     ['اسم المدير', 'نوع المدير', 'عدد المطاعم', 'إجمالي المبيعات', 'إجمالي الربح', 'هامش الربح', 'المتوسط لكل مطعم']
@@ -5140,14 +5759,14 @@
                 const ws = XLSX.utils.aoa_to_sheet(managerData);
                 XLSX.utils.book_append_sheet(wb, ws, 'تقرير المديرين');
                 
-                XLSX.writeFile(wb, `تقرير_المديرين_${new Date().toISOString().slice(0, 10)}.xlsx`);
+                XLSX.writeFile(wb, `تقرير_المديرين_${this.dataManager.dataYear}_${new Date().toISOString().slice(0, 10)}.xlsx`);
                 this.showNotification('تم تصدير تقرير المديرين إلى ملف Excel', 'success');
             }
             
             showExport() {
                 const content = `
                     <div class="dashboard-header">
-                        <h1><i class="fas fa-download"></i> تصدير البيانات والتقارير</h1>
+                        <h1><i class="fas fa-download"></i> تصدير البيانات والتقارير - ${this.dataManager.dataYear}</h1>
                     </div>
                     
                     <div class="export-options">
@@ -5187,9 +5806,8 @@
             exportAllData() {
                 const wb = XLSX.utils.book_new();
                 
-                // شيت المطاعم
                 const restaurantsData = [
-                    ['تقرير شامل لجميع المطاعم - شركة نايف للأغذية'],
+                    [`تقرير شامل لجميع المطاعم - شركة نايف للأغذية - ${this.dataManager.dataYear}`],
                     ['تاريخ التصدير:', new Date().toLocaleDateString('ar-SA')],
                     [''],
                     ['المطعم', 'مدير المنطقة', 'مدير التشغيل', 'المبيعات السنوية', 'تكلفة المواد', 
@@ -5217,7 +5835,6 @@
                 const wsRestaurants = XLSX.utils.aoa_to_sheet(restaurantsData);
                 XLSX.utils.book_append_sheet(wb, wsRestaurants, 'المطاعم');
                 
-                // شيت المديرين
                 const managers = this.dataManager.getManagersData();
                 const managersData = [
                     ['تقرير أداء المديرين'],
@@ -5240,7 +5857,6 @@
                 const wsManagers = XLSX.utils.aoa_to_sheet(managersData);
                 XLSX.utils.book_append_sheet(wb, wsManagers, 'المديرون');
                 
-                // شيت الملخص
                 const totals = this.dataManager.companyTotals;
                 const summaryData = [
                     ['ملخص أداء الشركة حسب معادلات Excel'],
@@ -5259,7 +5875,6 @@
                 const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
                 XLSX.utils.book_append_sheet(wb, wsSummary, 'ملخص_الشركة');
                 
-                // شيت تحليل التكاليف
                 const costDetails = this.dataManager.getAllCostDetails();
                 const costData = [
                     ['تحليل التكاليف التفصيلي'],
@@ -5292,7 +5907,7 @@
                 const wsCost = XLSX.utils.aoa_to_sheet(costData);
                 XLSX.utils.book_append_sheet(wb, wsCost, 'تحليل_التكاليف');
                 
-                XLSX.writeFile(wb, `تقرير_شامل_شركة_نايف_للأغذية_${new Date().toISOString().slice(0, 10)}.xlsx`);
+                XLSX.writeFile(wb, `تقرير_شامل_شركة_نايف_للأغذية_${this.dataManager.dataYear}_${new Date().toISOString().slice(0, 10)}.xlsx`);
                 this.showNotification('تم تصدير جميع البيانات بنجاح إلى ملف Excel', 'success');
             }
             
@@ -5300,7 +5915,7 @@
                 const wb = XLSX.utils.book_new();
                 
                 const restaurantData = [
-                    ['بيانات جميع المطاعم حسب معادلات Excel - شركة نايف للأغذية'],
+                    [`بيانات جميع المطاعم حسب معادلات Excel - شركة نايف للأغذية - ${this.dataManager.dataYear}`],
                     ['تاريخ التصدير:', new Date().toLocaleDateString('ar-SA')],
                     [''],
                     ['المطعم', 'مدير المنطقة', 'مدير التشغيل', 'المبيعات السنوية', 'تكلفة المواد', 
@@ -5328,7 +5943,7 @@
                 const ws = XLSX.utils.aoa_to_sheet(restaurantData);
                 XLSX.utils.book_append_sheet(wb, ws, 'بيانات_المطاعم');
                 
-                XLSX.writeFile(wb, `بيانات_المطاعم_${new Date().toISOString().slice(0, 10)}.xlsx`);
+                XLSX.writeFile(wb, `بيانات_المطاعم_${this.dataManager.dataYear}_${new Date().toISOString().slice(0, 10)}.xlsx`);
                 this.showNotification('تم تصدير بيانات المطاعم إلى ملف Excel', 'success');
             }
             
@@ -5404,7 +6019,7 @@
                 const wb = XLSX.utils.book_new();
                 
                 const reportData = [
-                    [`تقرير المطعم: ${restaurant.name} (حسب معادلات Excel)`],
+                    [`تقرير المطعم: ${restaurant.name} (حسب معادلات Excel) - ${this.dataManager.dataYear}`],
                     ['تاريخ التصدير:', new Date().toLocaleDateString('ar-SA')],
                     [''],
                     ['معلومات المطعم'],
@@ -5432,7 +6047,7 @@
                 const ws = XLSX.utils.aoa_to_sheet(reportData);
                 XLSX.utils.book_append_sheet(wb, ws, `تقرير_${restaurant.name}`);
                 
-                XLSX.writeFile(wb, `تقرير_${restaurant.name}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+                XLSX.writeFile(wb, `تقرير_${restaurant.name}_${this.dataManager.dataYear}_${new Date().toISOString().slice(0, 10)}.xlsx`);
                 this.showNotification('تم تصدير تقرير المطعم إلى ملف Excel', 'success');
             }
             
@@ -5569,40 +6184,45 @@
 
             downloadExcelTemplate() {
                 try {
+                    const arabicMonths = [
+                        'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+                        'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+                    ];
+                    
+                    const months = arabicMonths.map(month => `${month} ${this.dataManager.dataYear}`);
+                    
                     const templateData = [
                         ['مدير التشغيل', '', '', '', '', '', '', '', '', '', '', '', '', ''],
                         ['مدير المنطقة', '', '', '', '', '', '', '', '', '', '', '', '', ''],
                         ['اسم المطعم', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                        ['التواريخ', 'يناير 2025', 'فبراير 2025', 'مارس 2025', 'أبريل 2025', 
-                         'مايو 2025', 'يونيو 2025', 'يوليو 2025', 'أغسطس 2025', 
-                         'سبتمبر 2025', 'أكتوبر 2025', 'نوفمبر 2025', 'ديسمبر 2025', 'الإجمالي'],
-                        ['المبيعات', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['اجمالي تكلفة المواد المباعة', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['تكلفة - المواد الغذائية - المخازن', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['تكلفة - اللحوم والمقبلات', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['تكلفة - المرطبات', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['تكلفة - التعبئة والتغليف', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['تكلفة - الخبز', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['تكلفة - البهارات والتوابل', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['تكلفة - الفحم', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['تكلفة - الخضار', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['تكلفة - الغاز', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['فرق الجرد بين بضاعة أول المدة و آخر المدة', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['مجمل الربح قبل تنزيل مصاريف التشغيل', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['مصاريف رواتب واجور', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['مصاريف أعمال أضافية', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['مصاريف توالف المواد', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['مصاريف صيانة', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['مصاريف نظافة', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['مصاريف لوازم العمال', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['مصاريف لوازم المطاعم', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['مصاريف قرطاسية ومطبوعات', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['مصاريف وجبات عاملين', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['باقي مصاريف التشغيل', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['مجموع مصاريف التشغيل', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['الربح قبل تنزيل المصاريف العمومية', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['المصاريف العمومية', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ['صافى الربح', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                        ['التواريخ', ...months, 'الإجمالي'],
+                        ['المبيعات', ...Array(13).fill(0)],
+                        ['اجمالي تكلفة المواد المباعة', ...Array(13).fill(0)],
+                        ['تكلفة - المواد الغذائية - المخازن', ...Array(13).fill(0)],
+                        ['تكلفة - اللحوم والمقبلات', ...Array(13).fill(0)],
+                        ['تكلفة - المرطبات', ...Array(13).fill(0)],
+                        ['تكلفة - التعبئة والتغليف', ...Array(13).fill(0)],
+                        ['تكلفة - الخبز', ...Array(13).fill(0)],
+                        ['تكلفة - البهارات والتوابل', ...Array(13).fill(0)],
+                        ['تكلفة - الفحم', ...Array(13).fill(0)],
+                        ['تكلفة - الخضار', ...Array(13).fill(0)],
+                        ['تكلفة - الغاز', ...Array(13).fill(0)],
+                        ['فرق الجرد بين بضاعة أول المدة و آخر المدة', ...Array(13).fill(0)],
+                        ['مجمل الربح قبل تنزيل مصاريف التشغيل', ...Array(13).fill(0)],
+                        ['مصاريف رواتب واجور', ...Array(13).fill(0)],
+                        ['مصاريف أعمال أضافية', ...Array(13).fill(0)],
+                        ['مصاريف توالف المواد', ...Array(13).fill(0)],
+                        ['مصاريف صيانة', ...Array(13).fill(0)],
+                        ['مصاريف نظافة', ...Array(13).fill(0)],
+                        ['مصاريف لوازم العمال', ...Array(13).fill(0)],
+                        ['مصاريف لوازم المطاعم', ...Array(13).fill(0)],
+                        ['مصاريف قرطاسية ومطبوعات', ...Array(13).fill(0)],
+                        ['مصاريف وجبات عاملين', ...Array(13).fill(0)],
+                        ['باقي مصاريف التشغيل', ...Array(13).fill(0)],
+                        ['مجموع مصاريف التشغيل', ...Array(13).fill(0)],
+                        ['الربح قبل تنزيل المصاريف العمومية', ...Array(13).fill(0)],
+                        ['المصاريف العمومية', ...Array(13).fill(0)],
+                        ['صافى الربح', ...Array(13).fill(0)]
                     ];
                     
                     const ws = XLSX.utils.aoa_to_sheet(templateData);
@@ -5617,7 +6237,7 @@
                     
                     ws['A1'].s = { font: { bold: true, color: { rgb: "000000" } } };
                     
-                    XLSX.writeFile(wb, 'نموذج_بيانات_مطاعم_نايف_للأغذية.xlsx');
+                    XLSX.writeFile(wb, `نموذج_بيانات_مطاعم_نايف_للأغذية_${this.dataManager.dataYear}.xlsx`);
                     
                     this.showNotification('تم تحميل نموذج Excel بنجاح', 'success');
                     
@@ -5764,21 +6384,22 @@
             }
 
             updateCurrentDate() {
-                const now = new Date();
+                const formattedDate = Helpers.getFormattedDate();
                 const dateElement = document.getElementById('current-date');
+                const dayElement = document.getElementById('current-day');
+                
                 if (dateElement) {
-                    const options = { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric'
-                    };
-                    dateElement.textContent = now.toLocaleDateString('ar-SA', options).replace(/٢٠٢٥/g, '2025');
-                    
-                    setInterval(() => {
-                        dateElement.textContent = new Date().toLocaleDateString('ar-SA', options).replace(/٢٠٢٥/g, '2025');
-                    }, 60000);
+                    dateElement.textContent = formattedDate.date;
                 }
+                if (dayElement) {
+                    dayElement.textContent = formattedDate.day;
+                }
+                
+                setInterval(() => {
+                    const updatedDate = Helpers.getFormattedDate();
+                    if (dateElement) dateElement.textContent = updatedDate.date;
+                    if (dayElement) dayElement.textContent = updatedDate.day;
+                }, 60000);
             }
 
             getData() {
